@@ -517,3 +517,17 @@ Replaced the "Coming Soon" modal on the Meditation List with a fully functional 
 ### Modified
 - **`components/MeditationList.js`** — Removed `useState`/`Modal` imports, `showComingSoon` state, the entire Coming Soon `<Modal>` block and its styles. Added `audioFile` key (`'meditation-1'`, `'meditation-2'`, `'meditation-3'`) to each meditation in the `MEDITATIONS` array. Changed card `onPress` from `setShowComingSoon(true)` to `onSelectMeditation(meditation)`.
 - **`App.js`** — Added `MeditationPlayer` import. Added `selectedMeditation` state (near `selectedWorkout`). Updated `MEDITATION_LIST` case to set state + navigate on selection. Added `MEDITATION_PLAYER` routing case with fallback to list if no selection. Added `setSelectedMeditation(null)` in `handleReset()`.
+
+---
+
+## 39. Removed NutritionLog (Non-Functional)
+
+Removed the Quick Meal Log screen. It had scaffolded UI (meal type buttons, favorite meals grid) but no actual functionality — `todaysMeals` was hardcoded as an empty array and nothing saved or tracked meals.
+
+### Deleted
+- **`components/NutritionLog.js`** — Entire file removed
+
+### Modified
+- **`App.js`** — Removed `NutritionLog` import and `NUTRITION_LOG` route case
+- **`constants.js`** — Removed `NUTRITION_LOG` from `SCREENS` object
+- **`docs/nutrition-targets.md`** — Removed "Quick Meal Log Screen" section referencing the deleted component

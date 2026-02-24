@@ -13,7 +13,7 @@ import { SafetyNotice } from "./components/SafetyNotice";
 import { Dashboard } from "./components/Dashboard";
 import { WorkoutList } from "./components/WorkoutList";
 import { WorkoutDetail } from "./components/WorkoutDetail";
-import { NutritionLog } from "./components/NutritionLog";
+
 import { NutritionSummary } from "./components/NutritionSummary";
 import { PillarsOverview } from "./components/PillarsOverview";
 import { SupportScreen } from "./components/SupportScreen";
@@ -761,18 +761,6 @@ export default function App() {
             workout={selectedWorkout}
             onBack={() => navigateTo("WORKOUT_LIST")}
             onNavigate={navigateTo}
-          />
-        );
-      case "NUTRITION_LOG":
-        return (
-          <NutritionLog
-            onNavigate={navigateTo}
-            userName={userName}
-            weight={userWeight}
-            age={userAge}
-            sex={userSex}
-            goals={userGoals}
-            experience={userExperience}
           />
         );
       case "NUTRITION_SUMMARY":

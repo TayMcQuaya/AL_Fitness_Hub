@@ -136,15 +136,6 @@ Water = (200 × 0.5) ÷ 8 = 12.5 → 13 cups
 | Protein card | Your daily protein target in grams |
 | Fiber Focus tip | Your fiber target |
 | Hydration tip | Your water target in cups |
-| Progress bars | 0% (meal logging not yet implemented) |
-
-### Quick Meal Log Screen (NutritionLog)
-
-| Element | What It Shows |
-|---------|---------------|
-| Greeting | "Fueling your day, {your name}!" |
-| Coach Al's Tip | Your calorie, protein, and water targets |
-| Today's Fuel | "No meals logged yet" (empty state) |
 
 ---
 
