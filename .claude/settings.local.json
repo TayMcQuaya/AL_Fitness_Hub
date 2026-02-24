@@ -13,7 +13,14 @@
       "WebFetch(domain:docs.expo.dev)",
       "WebSearch",
       "mcp__context7__query-docs",
-      "Bash(ls -la /mnt/c/Users/tayfu/Desktop/Claude_Projects/al_fitness_hub/assets/meditation-*.mp3 /mnt/c/Users/tayfu/Desktop/Claude_Projects/al_fitness_hub/assets/al-med.png)"
+      "Bash(ls -la /mnt/c/Users/tayfu/Desktop/Claude_Projects/al_fitness_hub/assets/meditation-*.mp3 /mnt/c/Users/tayfu/Desktop/Claude_Projects/al_fitness_hub/assets/al-med.png)",
+      "WebFetch(domain:help.stan.store)",
+      "WebFetch(domain:zapier.com)",
+      "WebFetch(domain:docs.stripe.com)",
+      "WebFetch(domain:adapty.io)",
+      "WebFetch(domain:support.stripe.com)",
+      "WebFetch(domain:www.revenuecat.com)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
