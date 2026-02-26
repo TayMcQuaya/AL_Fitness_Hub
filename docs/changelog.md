@@ -572,3 +572,16 @@ Renamed the daily check-in button on Dashboard for clarity.
 
 ### Modified
 - **`components/Dashboard.js`** — Changed button text from "Log Today's Tasks" → "Tap to Complete Daily Tasks" and "All Tasks Logged" → "Daily Tasks Complete!"
+
+---
+
+## 43. Replaced Meditation Audio Files
+
+Swapped all 3 meditation recordings with updated versions from Coach Al.
+
+### Assets Replaced
+- `assets/meditation-1.mp3` — 2.8 MB → 5.6 MB
+- `assets/meditation-2.mp3` — 3.9 MB → 6.7 MB
+- `assets/meditation-3.mp3` — 3.7 MB → 6.7 MB
+
+No code changes needed — filenames unchanged so existing `require()` paths still work.
