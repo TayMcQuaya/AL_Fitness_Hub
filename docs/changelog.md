@@ -585,3 +585,46 @@ Swapped all 3 meditation recordings with updated versions from Coach Al.
 - `assets/meditation-3.mp3` — 3.7 MB → 6.7 MB
 
 No code changes needed — filenames unchanged so existing `require()` paths still work.
+
+---
+
+## 44. Payment Gate — Stan Store + Access Codes
+
+Added a payment wall after onboarding. Users complete the questionnaire, hit the gate, pay via Stan Store, and enter a manually-distributed access code to unlock the app. Scores are hidden until after payment as the reward for purchasing.
+
+### Decision Context
+Originally explored Stripe (see `docs/payment-gate-plan.md`). Coach Al chose Stan Store because it's already in his workflow. Stan Store has no API/webhooks/SDK, so verification uses one-time access codes stored in Firestore, manually emailed by Coach Al after each sale.
+
+### Created
+- **`components/PaymentGate.js`** — Two-phase gate screen:
+  - **Gate phase**: Lock icon, "You're almost there" greeting, "What You'll Get" feature list, "Get Full Access" button (opens Stan Store via `Linking.openURL`), code entry section with `WELL-` prefix, auto-uppercase input, error/success states, 5-attempt rate limiting with 60s cooldown
+  - **Results phase** (after valid code): Trophy icon, "Welcome!" greeting, 7 pillar score bars revealed with focus pillar highlighted, "Let's Go" button → Dashboard
+  - No BottomNav, no back button — hard gate
+- **`scripts/generate-codes.js`** — Node CLI script: `node scripts/generate-codes.js <count>`. Generates N unique `WELL-XXXX` codes using unambiguous charset, checks Firestore for duplicates, writes codes to `accessCodes` collection, appends to `generated-codes.txt` with checkboxes for Coach Al
+- **`scripts/export-users.js`** — Node CLI script: `node scripts/export-users.js`. Exports all users to `users-export.xlsx` with two sheets: Users (name, email, paid status, access code, signup date, last active, focus pillar, streak, days logged) and Summary (totals + code stats). Re-running overwrites with fresh data — no duplicates
+- **`docs/payment-gate.md`** — Comprehensive documentation: full flow, code system mechanics, Firestore structure, Coach Al's workflow, Stan Store link config, edge cases, security rules
+
+### Modified
+- **`constants.js`** — Added `SCREENS.PAYMENT_GATE` and `STAN_STORE_URL` (placeholder: `stan.store/coachal` — update when product is live)
+- **`lib/storage.js`** — Added `PAID` and `ACCESS_CODE` to KEYS. Added `savePaidStatus(code)`. Updated `loadAllData()` to return `paid` and `accessCode`. Updated `saveAllData()` to accept `paid` param. `clearAllData()` auto-includes new keys via `Object.values(KEYS)`.
+- **`lib/sync.js`** — Added `getDoc`, `runTransaction` imports. Added `validateAccessCode(userId, userEmail, code)` — Firestore transaction that handles unused codes, same-user reinstalls, email-match transfers, and already-redeemed rejection. Added `checkPaidStatus(userId)` — reads `paid` field from user doc (first-ever Firestore read in the app). Both wrapped in try/catch for offline resilience.
+- **`App.js`** — Added `isPaid` and `userEmail` state. Screen guard in `loadSavedData()`: unpaid + intakeCompleted → PAYMENT_GATE. `finalizeAssessment()` now navigates to PAYMENT_GATE instead of DASHBOARD. Added `handleCodeValidated(code)` (saves paid status, navigates to Dashboard) and `handleValidateCode(code)` (calls Firestore transaction). Added PAYMENT_GATE case in `renderScreen()`. `handleRandomFill()` sets `paid: true` (dev bypass). `handleReset()` clears paid state. `handleSaveName()` now tracks email in state.
+- **`.gitignore`** — Added `generated-codes.txt` and `*.xlsx`
+
+### New Dependency
+- **`xlsx`** — Excel file generation for user export script
+
+### Firestore Changes
+- New collection: `accessCodes/{code}` — Document ID is the code itself for O(1) lookup. Fields: `code`, `used`, `usedBy`, `usedByEmail`, `usedAt`, `createdAt`, `batch`
+- New fields on `users/{userId}`: `paid`, `accessCode`, `paidAt`
+
+### Security Rules Needed
+```
+match /accessCodes/{code} {
+  allow read: if true;
+  allow update: if resource.data.used == false && request.resource.data.used == true;
+  allow create, delete: if false;
+}
+```
+
+**Full details:** See [`docs/payment-gate.md`](./payment-gate.md)

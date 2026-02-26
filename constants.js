@@ -733,4 +733,8 @@ export const SCREENS = {
   SETTINGS: "SETTINGS",
   CHALLENGE_PROGRESS: "CHALLENGE_PROGRESS",
   CHALLENGE_DETAIL: "CHALLENGE_DETAIL",
+  PAYMENT_GATE: "PAYMENT_GATE",
 };
+
+// Stan Store product URL (update when product is live)
+export const STAN_STORE_URL = "https://stan.store/coachal";

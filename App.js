@@ -21,6 +21,7 @@ import { ChallengeProgress } from "./components/ChallengeProgress";
 import { ChallengeDetail } from "./components/ChallengeDetail";
 import { BookScreen } from "./components/BookScreen";
 import { ChapterView } from "./components/ChapterView";
+import { PaymentGate } from "./components/PaymentGate";
 import { LandingPage } from "./components/LandingPage";
 import { MeditationList } from "./components/MeditationList";
 import { MeditationPlayer } from "./components/MeditationPlayer";
@@ -50,6 +51,7 @@ import {
   acknowledgeMilestones,
   clearAllData,
   saveAllData,
+  savePaidStatus,
   saveTheme,
 } from "./lib/storage";
 
@@ -61,6 +63,8 @@ import {
   syncChallengeTasks,
   syncBookProgress,
   syncAllData as syncAllDataCloud,
+  validateAccessCode,
+  checkPaidStatus,
 } from "./lib/sync";
 
 const DEFAULT_SCORES = {
@@ -104,6 +108,9 @@ export default function App() {
 
   // Scoring state
   const [pillarScores, setPillarScores] = useState(DEFAULT_SCORES);
+
+  const [isPaid, setIsPaid] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
 
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState(null);
@@ -149,7 +156,17 @@ export default function App() {
       const data = await loadAllData();
 
       if (data.theme) setIsDark(data.theme === 'dark');
-      if (data.screen) setCurrentScreen(data.screen);
+      if (data.paid) setIsPaid(true);
+      if (data.email) setUserEmail(data.email);
+
+      // Screen guard: unpaid users with completed intake go to PAYMENT_GATE
+      if (data.screen) {
+        if (!data.paid && data.intakeCompleted) {
+          setCurrentScreen("PAYMENT_GATE");
+        } else {
+          setCurrentScreen(data.screen);
+        }
+      }
       if (data.name) setUserName(data.name);
       if (data.age) setUserAge(data.age);
       if (data.sex) setUserSex(data.sex);
@@ -280,6 +297,7 @@ export default function App() {
 
   const handleSaveName = async (name, email) => {
     setUserName(name);
+    if (email) setUserEmail(email);
     setIntakeData((prev) => ({ ...prev, personal: { name, email } }));
     try {
       await saveName(name);
@@ -352,7 +370,7 @@ export default function App() {
       console.log("Error saving assessment:", error);
     }
 
-    navigateTo("DASHBOARD");
+    navigateTo("PAYMENT_GATE");
   };
 
   // --- Challenge Handlers ---
@@ -507,6 +525,25 @@ export default function App() {
     }
   };
 
+  // --- Payment Gate ---
+
+  const handleCodeValidated = async (code) => {
+    setIsPaid(true);
+    try {
+      await savePaidStatus(code);
+    } catch (error) {
+      console.log("Error saving paid status:", error);
+    }
+    navigateTo("DASHBOARD");
+  };
+
+  const handleValidateCode = async (code) => {
+    if (!userIdRef.current) {
+      userIdRef.current = await getOrCreateUserId();
+    }
+    return validateAccessCode(userIdRef.current, userEmail, code);
+  };
+
   // --- Random Fill (Dev/Testing) ---
 
   const handleRandomFill = async () => {
@@ -558,6 +595,9 @@ export default function App() {
     setUserGoals(randomGoals);
     setUserExperience(randomExperience);
 
+    setIsPaid(true);
+    setUserEmail(randomEmail);
+
     const fillData = {
       name: randomName,
       email: randomEmail,
@@ -572,6 +612,7 @@ export default function App() {
       focusPillar: weakest[0],
       streak: randomStreak,
       screen: "DASHBOARD",
+      paid: true,
     };
 
     try {
@@ -601,6 +642,8 @@ export default function App() {
       console.log("Error clearing storage:", error);
     }
     setCurrentScreen("LANDING");
+    setIsPaid(false);
+    setUserEmail(null);
     setSelectedWorkout(null);
     setSelectedMeditation(null);
     setIsLoggedToday(false);
@@ -724,6 +767,17 @@ export default function App() {
           <SafetyNotice
             onNext={finalizeAssessment}
             onBack={() => navigateTo("INTAKE_MINDFULNESS")}
+          />
+        );
+      case "PAYMENT_GATE":
+        return (
+          <PaymentGate
+            userName={userName}
+            pillarScores={pillarScores}
+            focusPillar={focusPillar}
+            userEmail={userEmail}
+            onCodeValidated={handleCodeValidated}
+            validateCode={handleValidateCode}
           />
         );
       case "DASHBOARD":

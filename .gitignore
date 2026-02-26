@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# generated access codes (contains real codes — do not commit)
+generated-codes.txt
+
+# user export spreadsheets
+*.xlsx
