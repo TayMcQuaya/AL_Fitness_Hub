@@ -737,3 +737,13 @@ Dashboard checked `acknowledgedMilestones` before showing milestone modals. Chal
 ### Modified
 - **`App.js`** — `handleToggleChallengeTask` now fires `logToday()` + `syncDailyLog()` when all tasks complete for the day.
 - **`components/ChallengeDetail.js`** — Milestone building logic now checks `acknowledgedMilestones` to skip already-dismissed milestones.
+
+---
+
+## 54. Re-enable DEV_MODE for Testing
+
+Turned `DEV_MODE` back on in Dashboard and ChallengeDetail while the app is in active testing. Dev panels (phase jump, simulate day, etc.) are visible again. Set back to `false` before production release.
+
+### Modified
+- **`components/Dashboard.js`** — `DEV_MODE = true`
+- **`components/ChallengeDetail.js`** — `DEV_MODE = true`
