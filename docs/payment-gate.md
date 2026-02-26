@@ -252,12 +252,14 @@ That's the only change needed. The PaymentGate component reads this constant and
 
 ## Firestore Security Rules
 
-The `accessCodes` collection should have these rules:
+The `accessCodes` collection needs rules that **allow reading individual codes by ID** (the app needs this to validate) but **block listing the entire collection** (prevents someone from enumerating all unused codes).
 
 ```
 match /accessCodes/{code} {
-  // Anyone can read (app needs to check if code exists)
-  allow read: if true;
+  // Allow reading a single code by its exact document ID (get)
+  // Block listing/querying the entire collection (list)
+  allow get: if true;
+  allow list: if false;
 
   // Codes can only transition from unused → used (no create, no delete from client)
   allow update: if resource.data.used == false
@@ -267,7 +269,46 @@ match /accessCodes/{code} {
 }
 ```
 
-The `generate-codes.js` script writes codes using the client SDK (which bypasses security rules when run locally during development). For production, codes should be created via Firebase Admin SDK or directly in the console.
+**Why `get: true` but `list: false`?**
+- `get` = reading a single document by exact ID → the app does `getDoc(doc(db, "accessCodes", "WELL-K7NP"))` which requires knowing the code
+- `list` = querying/listing multiple documents → `getDocs(collection(db, "accessCodes"))` which would expose all codes
+
+With these rules, an attacker would need to brute-force guess codes (32^4 = ~1 million combinations) rather than simply listing them.
+
+**Note:** The `generate-codes.js` script uses the client SDK. With `allow create: if false`, you'll need to temporarily allow creates when running the script, or switch the script to use the Firebase Admin SDK with a service account key. See `docs/scripts.md` for details.
+
+---
+
+## Security Analysis
+
+### What's protected
+
+| Attack | Protection |
+|--------|-----------|
+| **List all codes from Firestore** | `allow list: false` — collection can't be enumerated |
+| **Brute-force guess codes** | 32^4 = ~1M combinations, impractical to guess at scale |
+| **Reuse someone else's code** | Firestore transaction checks `used` flag — returns "already redeemed" |
+| **Modify code in Firestore** | `allow update` only permits `used: false → true` transition |
+| **Create fake codes** | `allow create: if false` — clients can't write new codes |
+| **Delete codes** | `allow delete: if false` — clients can't remove codes |
+| **Bypass payment gate in-app** | Screen guard in `loadSavedData()` forces PAYMENT_GATE for unpaid users |
+
+### What's NOT protected (acceptable at current scale)
+
+| Risk | Reality |
+|------|---------|
+| **Client-side rate limiting** | 5-attempt cooldown resets on app restart. Someone determined could retry indefinitely. At Coach Al's scale (dozens of users, not thousands), this is acceptable. |
+| **Firebase config is public** | This is normal for all Firebase client apps. Security comes from rules, not config secrecy. |
+| **No server-side rate limiting** | Would require Cloud Functions (Blaze plan). Not worth the complexity at current scale. |
+| **Code space is finite** | ~1M possible codes. If someone wrote a script to try all of them one by one via `getDoc()`, they could eventually find valid codes. This would take significant effort and generate obvious traffic in Firebase usage metrics. |
+
+### Key rule: `get` vs `list`
+
+This is the most important security distinction. In Firestore:
+- **`get`** = read ONE document by exact ID → `getDoc(doc(db, "accessCodes", "WELL-K7NP"))`
+- **`list`** = read MULTIPLE documents via query → `getDocs(collection(db, "accessCodes"))`
+
+The rules MUST allow `get` (the app needs it) but block `list` (would expose all codes). If both are set to `allow read: if true`, the collection is wide open.
 
 ---
 
