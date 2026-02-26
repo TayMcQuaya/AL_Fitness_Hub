@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -60,6 +61,31 @@ export const ChallengeDetail = ({
   // Determine which triggers have been reached
   const day21Challenge = DAY_21_CHALLENGES[pillarId];
   const encouragement = PHASE_ENCOURAGEMENT[pillarId];
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+
+  // Build active milestones for modal
+  const activeMilestones = [];
+  if (!isCompleted && currentDay >= 5 && encouragement) {
+    activeMilestones.push({ icon: "emoji-emotions", iconColor: colors.primary, label: "Phase 1 Complete!", text: encouragement });
+  }
+  if (!isCompleted && currentDay >= 10) {
+    activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${challenge.name.toLowerCase()} journey.` });
+  }
+  if (!isCompleted && currentDay >= 15) {
+    activeMilestones.push({ icon: "local-offer", iconColor: colors.warning, label: "15% Off Coaching!", text: null, isDiscount: true });
+  }
+
+  // Auto-show modal when milestones appear
+  const prevDayRef = useRef(currentDay);
+  useEffect(() => {
+    if (currentDay >= 5 && prevDayRef.current !== currentDay) {
+      const milestones = [5, 10, 15];
+      if (milestones.includes(currentDay) && activeMilestones.length > 0) {
+        setShowMilestoneModal(true);
+      }
+    }
+    prevDayRef.current = currentDay;
+  }, [currentDay]);
 
   return (
     <View style={styles.container}>
@@ -238,65 +264,88 @@ export const ChallengeDetail = ({
           </View>
         )}
 
-        {/* Phase Trigger Messages */}
-        {currentDay >= 5 && currentDay < 10 && encouragement && (
-          <View style={styles.triggerCard}>
-            <MaterialIcons name="emoji-emotions" size={22} color={colors.primary} />
-            <View style={styles.triggerContent}>
-              <Text style={styles.triggerLabel}>Phase 1 Complete!</Text>
-              <Text style={styles.triggerText}>{encouragement}</Text>
-            </View>
-          </View>
+        {/* Milestone indicator — tap to open modal */}
+        {!isCompleted && activeMilestones.length > 0 && (
+          <TouchableOpacity
+            style={styles.milestoneIndicator}
+            onPress={() => setShowMilestoneModal(true)}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="stars" size={22} color={colors.warning} />
+            <Text style={styles.milestoneIndicatorText}>
+              {activeMilestones.length} Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked
+            </Text>
+            <MaterialIcons name="chevron-right" size={20} color={colors.warning} />
+          </TouchableOpacity>
         )}
 
-        {currentDay >= 10 && currentDay < 15 && (
-          <View style={styles.triggerCard}>
-            <MaterialIcons name="play-circle-filled" size={22} color={colors.secondary} />
-            <View style={styles.triggerContent}>
-              <Text style={styles.triggerLabel}>Mid-Challenge Video</Text>
-              <Text style={styles.triggerText}>
-                Watch Coach Al's motivation and tips for your {challenge.name.toLowerCase()} journey.
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {currentDay >= 15 && currentDay < 21 && (
-          <View style={styles.triggerCard}>
-            <MaterialIcons name="local-offer" size={22} color={colors.warning} />
-            <View style={styles.triggerContent}>
-              <Text style={styles.triggerLabel}>15% Off Coaching!</Text>
-              <Text style={styles.triggerText}>
-                Use code{' '}
-                <Text style={{ fontWeight: '800', color: colors.text }}>PILLAR15</Text>
-                {' '}for 15% off coaching packages. You've earned it!
-              </Text>
+        {/* Milestone Modal */}
+        <Modal
+          visible={showMilestoneModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowMilestoneModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <MaterialIcons name="stars" size={32} color={colors.warning} />
+                <Text style={styles.modalTitle}>Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked!</Text>
+              </View>
+              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                {activeMilestones.map((m, idx) => (
+                  <View key={idx} style={styles.modalMilestone}>
+                    <MaterialIcons name={m.icon} size={28} color={m.iconColor} />
+                    <View style={styles.modalMilestoneContent}>
+                      <Text style={styles.modalMilestoneLabel}>{m.label}</Text>
+                      {m.isDiscount ? (
+                        <>
+                          <Text style={styles.modalMilestoneText}>
+                            Use code{" "}
+                            <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
+                            {" "}for 15% off coaching packages. You've earned it!
+                          </Text>
+                          <TouchableOpacity
+                            style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
+                            onPress={async () => {
+                              await Clipboard.setStringAsync("PILLAR15");
+                              setCodeCopied(true);
+                              setTimeout(() => setCodeCopied(false), 2000);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <MaterialIcons
+                              name={codeCopied ? "check" : "content-copy"}
+                              size={14}
+                              color={codeCopied ? colors.primary : colors.text}
+                            />
+                            <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
+                              {codeCopied ? "Copied!" : "Copy Code"}
+                            </Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : (
+                        <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
               <TouchableOpacity
-                style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
-                onPress={async () => {
-                  await Clipboard.setStringAsync('PILLAR15');
-                  setCodeCopied(true);
-                  setTimeout(() => setCodeCopied(false), 2000);
-                }}
-                activeOpacity={0.7}
+                style={styles.modalDismiss}
+                onPress={() => setShowMilestoneModal(false)}
+                activeOpacity={0.8}
               >
-                <MaterialIcons
-                  name={codeCopied ? 'check' : 'content-copy'}
-                  size={14}
-                  color={codeCopied ? colors.primary : colors.text}
-                />
-                <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
-                  {codeCopied ? 'Copied!' : 'Copy Code'}
-                </Text>
+                <Text style={styles.modalDismissText}>Got It!</Text>
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        </Modal>
 
         {/* Today's Tasks */}
         {!isCompleted && (
           <>
-            <Text style={styles.sectionTitle}>Today's Tasks</Text>
+            <Text style={styles.dailyTasksHeading}>DAILY TASK{availableTasks.length !== 1 ? 'S' : ''}</Text>
             <View style={styles.tasksList}>
               {availableTasks.map((task) => {
                 const completed = isTaskCompleted(task.id);
@@ -655,30 +704,90 @@ const makeStyles = (colors) => StyleSheet.create({
     fontWeight: "700",
     color: colors.textInverse,
   },
-  // Trigger cards
-  triggerCard: {
+  // Milestone indicator + modal
+  milestoneIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: `${colors.warning}15`,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 20,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: `${colors.warning}30`,
+  },
+  milestoneIndicatorText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.warning,
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    padding: 28,
+    width: "100%",
+    maxHeight: "95%",
+    borderWidth: 2,
+    borderColor: `${colors.warning}40`,
+  },
+  modalHeader: {
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: colors.text,
+    textAlign: "center",
+  },
+  modalScroll: {
+    flexGrow: 0,
+  },
+  modalMilestone: {
     flexDirection: "row",
     backgroundColor: `${colors.primary}10`,
     borderRadius: 16,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: `${colors.primary}25`,
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: 14,
+    gap: 14,
   },
-  triggerContent: {
+  modalMilestoneContent: {
     flex: 1,
   },
-  triggerLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.primary,
-    marginBottom: 4,
+  modalMilestoneLabel: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: colors.text,
+    marginBottom: 6,
   },
-  triggerText: {
-    fontSize: 13,
-    color: colors.gray[400],
-    lineHeight: 18,
+  modalMilestoneText: {
+    fontSize: 15,
+    color: colors.gray[300],
+    lineHeight: 22,
+  },
+  modalDismiss: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  modalDismissText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.textInverse,
   },
   copyButton: {
     flexDirection: 'row',
@@ -719,6 +828,14 @@ const makeStyles = (colors) => StyleSheet.create({
     fontWeight: "700",
     color: colors.primary,
   },
+  dailyTasksHeading: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: colors.text,
+    letterSpacing: 2,
+    marginBottom: 16,
+    textAlign: "center",
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
@@ -726,14 +843,14 @@ const makeStyles = (colors) => StyleSheet.create({
     marginBottom: 16,
   },
   tasksList: {
-    gap: 12,
+    gap: 14,
     marginBottom: 24,
   },
   taskCard: {
     flexDirection: "row",
     backgroundColor: colors.surface,
     borderRadius: 16,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: colors.divider,
   },
@@ -742,14 +859,14 @@ const makeStyles = (colors) => StyleSheet.create({
     borderColor: `${colors.primary}30`,
   },
   taskCheckbox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: colors.gray[600],
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 14,
   },
   taskCheckboxCompleted: {
     backgroundColor: colors.primary,
@@ -765,8 +882,8 @@ const makeStyles = (colors) => StyleSheet.create({
     marginBottom: 4,
   },
   taskName: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: colors.text,
     flex: 1,
   },
@@ -786,9 +903,10 @@ const makeStyles = (colors) => StyleSheet.create({
     color: colors.gray[400],
   },
   taskDescription: {
-    fontSize: 13,
-    color: colors.gray[400],
-    lineHeight: 18,
+    fontSize: 18,
+    fontWeight: "500",
+    color: colors.text,
+    lineHeight: 26,
   },
   taskDescriptionCompleted: {
     color: colors.gray[500],

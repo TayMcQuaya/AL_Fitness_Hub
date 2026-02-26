@@ -531,3 +531,44 @@ Removed the Quick Meal Log screen. It had scaffolded UI (meal type buttons, favo
 - **`App.js`** — Removed `NutritionLog` import and `NUTRITION_LOG` route case
 - **`constants.js`** — Removed `NUTRITION_LOG` from `SCREENS` object
 - **`docs/nutrition-targets.md`** — Removed "Quick Meal Log Screen" section referencing the deleted component
+
+---
+
+## 40. Daily Tasks UI — Larger Fonts & Heading
+
+Made challenge tasks more prominent and readable on both Dashboard and ChallengeDetail.
+
+### Modified
+- **`components/Dashboard.js`** — Added centered "DAILY TASKS" heading (fontSize 26, fontWeight 900, letterSpacing 2). Task name fontSize increased to 20 (fontWeight 800). Task description fontSize increased to 18 (fontWeight 500, color changed from muted gray to `colors.text`). Checkbox increased to 32px.
+- **`components/ChallengeDetail.js`** — Same changes: "DAILY TASK(S)" heading (dynamic plural), task name fontSize 20, task description fontSize 18, checkbox 32px with borderRadius 10.
+
+---
+
+## 41. Milestone Triggers — Converted to Modal
+
+Replaced the inline trigger cards (Day 5 encouragement, Day 10 video, Day 15 discount) with a prominent modal window on both Dashboard and ChallengeDetail.
+
+### What Changed
+- **Inline cards removed** — The 3 conditional trigger card blocks that sat in the scroll content are gone
+- **Milestone indicator pill** — A gold-accented touchable row ("X Milestone(s) Unlocked") appears in the scroll content. Tapping it reopens the modal
+- **Modal window** — Full-screen overlay with centered card containing:
+  - "Milestone(s) Unlocked!" header with star icon
+  - All active milestones stacked vertically (each in its own rounded card with icon, label, description)
+  - Day 15 discount includes the "Copy Code" button for PILLAR15 inside the modal
+  - Green "Got It!" dismiss button
+- **Auto-show** — Modal automatically opens when the user reaches milestone days (5, 10, 15)
+- **Modal sizing** — `maxHeight: 95%` so all 3 stacked milestones fit without scrolling
+- **Day 21 recap cards** on Dashboard remain as inline cards (permanent recap, not dismissable)
+
+### Modified
+- **`components/Dashboard.js`** — Added `Modal` import, `showMilestoneModal` state, `activeMilestones` array builder, auto-show useEffect, milestone indicator + modal JSX, and all modal styles
+- **`components/ChallengeDetail.js`** — Same: added `Modal` import, `useRef`/`useEffect` imports, `showMilestoneModal` state, `activeMilestones` array, auto-show logic, replaced inline triggers with indicator + modal, added modal styles
+
+---
+
+## 42. Clearer Log Button Labels
+
+Renamed the daily check-in button on Dashboard for clarity.
+
+### Modified
+- **`components/Dashboard.js`** — Changed button text from "Log Today's Tasks" → "Tap to Complete Daily Tasks" and "All Tasks Logged" → "Daily Tasks Complete!"

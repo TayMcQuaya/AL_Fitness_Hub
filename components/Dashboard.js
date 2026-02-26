@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   Linking,
+  Modal,
   Animated,
   Dimensions,
 } from "react-native";
@@ -138,6 +139,7 @@ export const Dashboard = ({
   const focusPillar = PILLARS.find((p) => p.id === focusPillarId) || PILLARS[0];
   const [codeCopied, setCodeCopied] = useState(false);
   const [confettiKey, setConfettiKey] = useState(0);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
 
   // Derive challenge data
   const challenge = TWENTY_ONE_DAY_CHALLENGES[focusPillarId];
@@ -159,13 +161,26 @@ export const Dashboard = ({
   const day21Challenge = DAY_21_CHALLENGES[focusPillarId];
   const hasTrigger = (currentDay || 1) >= 5;
 
-  // Fire confetti when a milestone trigger is visible
+  // Build list of active (unacknowledged) milestone triggers
+  const activeMilestones = [];
+  if (!isCompleted && (currentDay || 1) >= 5 && !ackMilestones.includes(5) && encouragement) {
+    activeMilestones.push({ icon: "emoji-emotions", iconColor: colors.primary, label: "You're Building Momentum!", text: encouragement });
+  }
+  if (!isCompleted && (currentDay || 1) >= 10 && !ackMilestones.includes(10)) {
+    activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${focusPillar.name.toLowerCase()} journey.` });
+  }
+  if (!isCompleted && (currentDay || 1) >= 15 && !ackMilestones.includes(15)) {
+    activeMilestones.push({ icon: "local-offer", iconColor: colors.warning, label: "15% Off Coaching!", text: null, isDiscount: true });
+  }
+
+  // Auto-show modal when milestones appear
   const prevDayRef = useRef(currentDay);
   useEffect(() => {
     if ((currentDay || 1) >= 5 && prevDayRef.current !== currentDay) {
       const milestones = [5, 10, 15, 21];
       if (milestones.includes(currentDay)) {
         setConfettiKey((k) => k + 1);
+        if (activeMilestones.length > 0) setShowMilestoneModal(true);
       }
     }
     prevDayRef.current = currentDay;
@@ -364,6 +379,8 @@ export const Dashboard = ({
               </Text>
             </View>
           ) : (
+            <>
+            <Text style={styles.dailyTasksHeading}>DAILY TASK{availableTasks.length !== 1 ? 'S' : ''}</Text>
             <View style={styles.tasksList}>
               {availableTasks.map((task) => {
                 const done = todayCompletedTasks.includes(task.id);
@@ -394,6 +411,7 @@ export const Dashboard = ({
                 );
               })}
             </View>
+            </>
           )}
 
           {!isCompleted && (
@@ -418,67 +436,90 @@ export const Dashboard = ({
                 ]}
               >
                 {isLoggedToday
-                  ? "All Tasks Logged"
-                  : "Log Today's Tasks"}
+                  ? "Daily Tasks Complete!"
+                  : "Tap to Complete Daily Tasks"}
               </Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Milestone Triggers — persist until acknowledged by logging (hidden on Day 21, recap takes over) */}
-        {!isCompleted && (currentDay || 1) >= 5 && !ackMilestones.includes(5) && encouragement && (
-          <View style={styles.triggerCard}>
-            <MaterialIcons name="emoji-emotions" size={24} color={colors.primary} />
-            <View style={styles.triggerContent}>
-              <Text style={styles.triggerLabel}>You're Building Momentum!</Text>
-              <Text style={styles.triggerText}>{encouragement}</Text>
-            </View>
-          </View>
+        {/* Milestone indicator — tap to reopen modal */}
+        {!isCompleted && activeMilestones.length > 0 && (
+          <TouchableOpacity
+            style={styles.milestoneIndicator}
+            onPress={() => setShowMilestoneModal(true)}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="stars" size={22} color={colors.warning} />
+            <Text style={styles.milestoneIndicatorText}>
+              {activeMilestones.length} Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked
+            </Text>
+            <MaterialIcons name="chevron-right" size={20} color={colors.warning} />
+          </TouchableOpacity>
         )}
 
-        {!isCompleted && (currentDay || 1) >= 10 && !ackMilestones.includes(10) && (
-          <View style={styles.triggerCard}>
-            <MaterialIcons name="play-circle-filled" size={24} color={colors.secondary} />
-            <View style={styles.triggerContent}>
-              <Text style={styles.triggerLabel}>Mid-Challenge Video</Text>
-              <Text style={styles.triggerText}>
-                Watch Coach Al's motivation and tips for your {focusPillar.name.toLowerCase()} journey.
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {!isCompleted && (currentDay || 1) >= 15 && !ackMilestones.includes(15) && (
-          <View style={styles.triggerCard}>
-            <MaterialIcons name="local-offer" size={24} color={colors.warning} />
-            <View style={styles.triggerContent}>
-              <Text style={styles.triggerLabel}>15% Off Coaching!</Text>
-              <Text style={styles.triggerText}>
-                Use code{" "}
-                <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
-                {" "}for 15% off coaching packages. You've earned it!
-              </Text>
+        {/* Milestone Modal */}
+        <Modal
+          visible={showMilestoneModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowMilestoneModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <MaterialIcons name="stars" size={32} color={colors.warning} />
+                <Text style={styles.modalTitle}>Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked!</Text>
+              </View>
+              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                {activeMilestones.map((m, idx) => (
+                  <View key={idx} style={styles.modalMilestone}>
+                    <MaterialIcons name={m.icon} size={28} color={m.iconColor} />
+                    <View style={styles.modalMilestoneContent}>
+                      <Text style={styles.modalMilestoneLabel}>{m.label}</Text>
+                      {m.isDiscount ? (
+                        <>
+                          <Text style={styles.modalMilestoneText}>
+                            Use code{" "}
+                            <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
+                            {" "}for 15% off coaching packages. You've earned it!
+                          </Text>
+                          <TouchableOpacity
+                            style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
+                            onPress={async () => {
+                              await Clipboard.setStringAsync("PILLAR15");
+                              setCodeCopied(true);
+                              setTimeout(() => setCodeCopied(false), 2000);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <MaterialIcons
+                              name={codeCopied ? "check" : "content-copy"}
+                              size={14}
+                              color={codeCopied ? colors.primary : colors.text}
+                            />
+                            <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
+                              {codeCopied ? "Copied!" : "Copy Code"}
+                            </Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : (
+                        <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
               <TouchableOpacity
-                style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
-                onPress={async () => {
-                  await Clipboard.setStringAsync("PILLAR15");
-                  setCodeCopied(true);
-                  setTimeout(() => setCodeCopied(false), 2000);
-                }}
-                activeOpacity={0.7}
+                style={styles.modalDismiss}
+                onPress={() => setShowMilestoneModal(false)}
+                activeOpacity={0.8}
               >
-                <MaterialIcons
-                  name={codeCopied ? "check" : "content-copy"}
-                  size={14}
-                  color={codeCopied ? colors.primary : colors.text}
-                />
-                <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
-                  {codeCopied ? "Copied!" : "Copy Code"}
-                </Text>
+                <Text style={styles.modalDismissText}>Got It!</Text>
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        </Modal>
 
         {isCompleted && day21Challenge && (
           <View style={styles.celebrationCard}>
@@ -844,8 +885,16 @@ const makeStyles = (colors) =>
       textTransform: "uppercase",
       letterSpacing: 1,
     },
+    dailyTasksHeading: {
+      fontSize: 26,
+      fontWeight: "900",
+      color: colors.text,
+      letterSpacing: 2,
+      marginBottom: 14,
+      textAlign: "center",
+    },
     tasksList: {
-      gap: 10,
+      gap: 12,
       marginBottom: 20,
     },
     taskCard: {
@@ -853,7 +902,7 @@ const makeStyles = (colors) =>
       alignItems: "center",
       backgroundColor: colors.overlayLight,
       borderRadius: 12,
-      padding: 14,
+      padding: 16,
       borderWidth: 1,
       borderColor: colors.divider,
     },
@@ -862,14 +911,14 @@ const makeStyles = (colors) =>
       borderColor: `${colors.primary}25`,
     },
     taskCheckbox: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       borderWidth: 2,
       borderColor: colors.gray[600],
       alignItems: "center",
       justifyContent: "center",
-      marginRight: 12,
+      marginRight: 14,
     },
     taskCheckboxDone: {
       backgroundColor: colors.primary,
@@ -879,18 +928,19 @@ const makeStyles = (colors) =>
       flex: 1,
     },
     taskName: {
-      fontSize: 14,
-      fontWeight: "700",
+      fontSize: 20,
+      fontWeight: "800",
       color: colors.text,
-      marginBottom: 2,
+      marginBottom: 4,
     },
     taskNameDone: {
       color: colors.primary,
     },
     taskDesc: {
-      fontSize: 11,
-      color: colors.textSecondary,
-      lineHeight: 16,
+      fontSize: 18,
+      fontWeight: "500",
+      color: colors.text,
+      lineHeight: 26,
     },
     completionBanner: {
       alignItems: "center",
@@ -1225,6 +1275,90 @@ const makeStyles = (colors) =>
       color: "#ef4444",
       textAlign: "center",
       marginTop: 8,
+    },
+    milestoneIndicator: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: `${colors.warning}15`,
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 20,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: `${colors.warning}30`,
+    },
+    milestoneIndicatorText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.warning,
+      flex: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 24,
+    },
+    modalCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      padding: 28,
+      width: "100%",
+      maxHeight: "95%",
+      borderWidth: 2,
+      borderColor: `${colors.warning}40`,
+    },
+    modalHeader: {
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 24,
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: "900",
+      color: colors.text,
+      textAlign: "center",
+    },
+    modalScroll: {
+      flexGrow: 0,
+    },
+    modalMilestone: {
+      flexDirection: "row",
+      backgroundColor: `${colors.primary}10`,
+      borderRadius: 16,
+      padding: 18,
+      borderWidth: 1,
+      borderColor: `${colors.primary}25`,
+      marginBottom: 14,
+      gap: 14,
+    },
+    modalMilestoneContent: {
+      flex: 1,
+    },
+    modalMilestoneLabel: {
+      fontSize: 17,
+      fontWeight: "800",
+      color: colors.text,
+      marginBottom: 6,
+    },
+    modalMilestoneText: {
+      fontSize: 15,
+      color: colors.gray[300],
+      lineHeight: 22,
+    },
+    modalDismiss: {
+      backgroundColor: colors.primary,
+      borderRadius: 14,
+      paddingVertical: 16,
+      alignItems: "center",
+      marginTop: 10,
+    },
+    modalDismissText: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: colors.textInverse,
     },
     triggerCard: {
       flexDirection: "row",
