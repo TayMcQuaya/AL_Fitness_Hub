@@ -717,3 +717,23 @@ Users who went through normal onboarding (not "Skip with Random Data") had no `c
 
 ### Modified
 - **`lib/sync.js`** — `syncUserProfile()` now checks if the user doc already has a `createdAt` field. If not, it sets `createdAt: serverTimestamp()` on that write. Existing users get backfilled on their next profile sync.
+
+---
+
+## 53. Dashboard & Challenge Sync Fixes
+
+Fixed two sync bugs between Dashboard and ChallengeDetail found during audit.
+
+### Bug 1: Global streak not updating from ChallengeDetail
+When a user completed all tasks individually in ChallengeDetail, the per-challenge `streakDays` incremented correctly but the global daily streak (`logToday()`) never fired. Only the Dashboard's bulk log button called it.
+
+**Fix:** `handleToggleChallengeTask` in App.js now detects when the last task toggle completes all tasks for today (compares `lastCompletionDate` before/after). When that happens, it calls `logToday()` to increment the global streak, updates `isLoggedToday`, and syncs to Firestore.
+
+### Bug 2: Milestones re-appearing on ChallengeDetail
+Dashboard checked `acknowledgedMilestones` before showing milestone modals. ChallengeDetail did not — so milestones dismissed on Dashboard would re-appear on ChallengeDetail.
+
+**Fix:** ChallengeDetail now reads `acknowledgedMilestones` from `challengeState` and filters with `!ackMilestones.includes(day)` — matching Dashboard's logic exactly.
+
+### Modified
+- **`App.js`** — `handleToggleChallengeTask` now fires `logToday()` + `syncDailyLog()` when all tasks complete for the day.
+- **`components/ChallengeDetail.js`** — Milestone building logic now checks `acknowledgedMilestones` to skip already-dismissed milestones.

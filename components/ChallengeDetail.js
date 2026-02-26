@@ -38,7 +38,8 @@ export const ChallengeDetail = ({
   const challenge = TWENTY_ONE_DAY_CHALLENGES[pillarId];
   if (!challenge) return null;
 
-  const { currentDay, completedTasks, streakDays } = challengeState;
+  const { currentDay, completedTasks, streakDays, acknowledgedMilestones } = challengeState;
+  const ackMilestones = acknowledgedMilestones || [];
   const currentPhase = getPhaseFromDay(currentDay);
   const todayKey = new Date().toISOString().split("T")[0];
   const todayCompletedTasks = completedTasks[todayKey] || [];
@@ -63,15 +64,15 @@ export const ChallengeDetail = ({
   const encouragement = PHASE_ENCOURAGEMENT[pillarId];
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
 
-  // Build active milestones for modal
+  // Build active milestones for modal (only unacknowledged ones)
   const activeMilestones = [];
-  if (!isCompleted && currentDay >= 5 && encouragement) {
+  if (!isCompleted && currentDay >= 5 && !ackMilestones.includes(5) && encouragement) {
     activeMilestones.push({ icon: "emoji-emotions", iconColor: colors.primary, label: "Phase 1 Complete!", text: encouragement });
   }
-  if (!isCompleted && currentDay >= 10) {
+  if (!isCompleted && currentDay >= 10 && !ackMilestones.includes(10)) {
     activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${challenge.name.toLowerCase()} journey.` });
   }
-  if (!isCompleted && currentDay >= 15) {
+  if (!isCompleted && currentDay >= 15 && !ackMilestones.includes(15)) {
     activeMilestones.push({ icon: "local-offer", iconColor: colors.warning, label: "15% Off Coaching!", text: null, isDiscount: true });
   }
 

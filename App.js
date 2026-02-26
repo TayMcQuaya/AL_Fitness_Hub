@@ -382,6 +382,8 @@ export default function App() {
   };
 
   const handleToggleChallengeTask = async (pillarId, taskId) => {
+    let allDoneNow = false;
+
     setChallengeStates((prev) => {
       const pillarState = prev[pillarId];
       const updatedPillarState = advanceChallengeDay(
@@ -390,6 +392,14 @@ export default function App() {
         taskId,
         TWENTY_ONE_DAY_CHALLENGES,
       );
+
+      // Detect if this toggle completed all tasks for today
+      const today = new Date().toISOString().split("T")[0];
+      const prevCompletion = pillarState.lastCompletionDate;
+      const newCompletion = updatedPillarState.lastCompletionDate;
+      if (newCompletion === today && prevCompletion !== today) {
+        allDoneNow = true;
+      }
 
       const newState = {
         ...prev,
@@ -403,7 +413,6 @@ export default function App() {
 
       // Fire-and-forget cloud sync
       if (userIdRef.current) {
-        const today = new Date().toISOString().split("T")[0];
         const todayTasks = updatedPillarState.completedTasks[today] || [];
         syncChallengeProgress(
           userIdRef.current,
@@ -415,6 +424,25 @@ export default function App() {
 
       return newState;
     });
+
+    // If all tasks just completed, also update the global daily streak
+    if (allDoneNow && !isLoggedToday) {
+      try {
+        const result = await logToday(streak, totalDaysLogged, logHistory);
+        setIsLoggedToday(true);
+        setStreak(result.streak);
+        setTotalDaysLogged(result.totalDaysLogged);
+        setLastLogDate(result.lastLogDate);
+        setLogHistory(result.logHistory);
+
+        if (userIdRef.current) {
+          const today = new Date().toISOString().split("T")[0];
+          syncDailyLog(userIdRef.current, today, result.streak, result.totalDaysLogged);
+        }
+      } catch (error) {
+        console.log("Error updating daily streak from challenge:", error);
+      }
+    }
   };
 
   // Dev mode: Simulate time passing for challenge testing
