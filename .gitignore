@@ -43,5 +43,5 @@ yarn-error.*
 # generated access codes (contains real codes — do not commit)
 generated-codes.txt
 
-# user export spreadsheets
-*.xlsx
+# export spreadsheets
+exports/

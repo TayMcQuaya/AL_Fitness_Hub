@@ -47,7 +47,9 @@ async function main() {
   const fileName = outputIdx !== -1 && process.argv[outputIdx + 1]
     ? process.argv[outputIdx + 1]
     : "users-export.xlsx";
-  const outPath = path.resolve(process.cwd(), fileName);
+  const exportDir = path.resolve(process.cwd(), "exports");
+  if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir);
+  const outPath = path.join(exportDir, fileName);
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);

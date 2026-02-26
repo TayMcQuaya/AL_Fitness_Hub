@@ -126,7 +126,60 @@ Gives Coach Al a quick overview of all users, who has paid, and what codes are i
 
 ---
 
-## 3. delete-user.js — Delete a User by Email
+## 3. export-codes.js — Export Access Codes to Excel
+
+Fetches all access codes from Firestore and creates a formatted Excel spreadsheet showing each code's status (Available or Used).
+
+### Usage
+
+```bash
+node scripts/export-codes.js                          # Default: codes-export.xlsx
+node scripts/export-codes.js --output my-codes.xlsx   # Custom filename
+```
+
+### What it does
+
+1. Reads all documents from the Firestore `accessCodes` collection
+2. Creates an Excel file with two sheets:
+
+**Sheet 1: "Codes"**
+
+| Column | Source |
+|--------|--------|
+| Code | `accessCodes/{id}.code` |
+| Status | "Used" or "Available" (from `used` field) |
+| Used By | `usedByEmail` (email of the person who redeemed it) |
+| User ID | `usedBy` (internal user ID) |
+| Used At | `usedAt` (formatted date) |
+| Created | `createdAt` (formatted date) |
+| Batch | `batch` (which generation batch) |
+
+Sorted by creation date (oldest first) — order stays the same across reruns.
+
+**Sheet 2: "Summary"**
+
+| Metric | Value |
+|--------|-------|
+| Total Codes | count |
+| Used | count |
+| Available | count |
+| Last Updated | timestamp |
+
+### Re-running
+
+The script **overwrites** the file with fresh Firestore data each time. Statuses update (e.g., a code that was "Available" last time may now be "Used"), but codes stay in their original creation order.
+
+### Output file
+
+`codes-export.xlsx` (or custom name via `--output`). This file is in `.gitignore` (`*.xlsx` pattern).
+
+### Why it exists
+
+Gives Coach Al a quick view of all access codes and their status — who used which code and when — without navigating the Firebase Console.
+
+---
+
+## 4. delete-user.js — Delete a User by Email
 
 Completely removes a user's entire Firebase data by email address. Deletes the user document and all subcollections.
 
@@ -167,6 +220,7 @@ For removing test accounts, handling user data deletion requests, or cleaning up
 |--------|---------|------|
 | Generate codes | `node scripts/generate-codes.js 50` | Create 50 access codes → Firestore + text file |
 | Export users | `node scripts/export-users.js` | All users → Excel spreadsheet |
+| Export codes | `node scripts/export-codes.js` | All access codes + status → Excel spreadsheet |
 | Delete user | `node scripts/delete-user.js email@example.com` | Remove user + all subcollections from Firestore |
 
 ### Prerequisites
@@ -182,3 +236,4 @@ All scripts require:
 |------|-----------|----------------|
 | `generated-codes.txt` | generate-codes.js | Yes |
 | `users-export.xlsx` | export-users.js | Yes (`*.xlsx`) |
+| `codes-export.xlsx` | export-codes.js | Yes (`*.xlsx`) |

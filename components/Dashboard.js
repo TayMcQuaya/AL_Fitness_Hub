@@ -26,7 +26,7 @@ import {
 import { getMissedDays } from "../lib/storage";
 import { BottomNav } from "./BottomNav";
 
-const DEV_MODE = true;
+const DEV_MODE = false;
 const CONFETTI_COLORS = ["#13ec13", "#ec7f13", "#FFD700", "#FF6B6B", "#4ECDC4", "#A78BFA"];
 const CONFETTI_COUNT = 24;
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -140,6 +140,7 @@ export const Dashboard = ({
   const [codeCopied, setCodeCopied] = useState(false);
   const [confettiKey, setConfettiKey] = useState(0);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   // Derive challenge data
   const challenge = TWENTY_ONE_DAY_CHALLENGES[focusPillarId];
@@ -734,12 +735,50 @@ export const Dashboard = ({
           </TouchableOpacity>
         </View>
 
-        {DEV_MODE && (
-          <TouchableOpacity style={styles.resetButton} onPress={onReset}>
-            <MaterialIcons name="refresh" size={18} color={colors.gray[400]} />
-            <Text style={styles.resetButtonText}>Reset Intro Flow</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={() => setShowResetModal(true)}
+        >
+          <MaterialIcons name="delete-outline" size={18} color={colors.error || "#FF6B6B"} />
+          <Text style={[styles.resetButtonText, { color: colors.error || "#FF6B6B" }]}>Reset All Progress</Text>
+        </TouchableOpacity>
+
+        {/* Reset Confirmation Modal */}
+        <Modal
+          visible={showResetModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowResetModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <MaterialIcons name="warning" size={32} color={colors.error} />
+                <Text style={styles.modalTitle}>Reset All Progress?</Text>
+              </View>
+              <Text style={styles.resetModalText}>
+                This will erase everything — scores, streaks, challenges, and cloud data. You'll start from scratch.{"\n\n"}This cannot be undone.
+              </Text>
+              <TouchableOpacity
+                style={styles.resetModalConfirm}
+                onPress={() => {
+                  setShowResetModal(false);
+                  onReset();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.resetModalConfirmText}>Reset Everything</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.resetModalCancel}
+                onPress={() => setShowResetModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.resetModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
 
       <BottomNav currentScreen="DASHBOARD" onNavigate={onNavigate} />
@@ -1359,6 +1398,34 @@ const makeStyles = (colors) =>
       fontSize: 18,
       fontWeight: "800",
       color: colors.textInverse,
+    },
+    resetModalText: {
+      fontSize: 15,
+      color: colors.gray[400],
+      lineHeight: 22,
+      marginBottom: 24,
+    },
+    resetModalConfirm: {
+      backgroundColor: colors.error,
+      borderRadius: 14,
+      paddingVertical: 16,
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    resetModalConfirmText: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: "#ffffff",
+    },
+    resetModalCancel: {
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    resetModalCancelText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.gray[400],
     },
     triggerCard: {
       flexDirection: "row",

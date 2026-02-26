@@ -65,6 +65,7 @@ import {
   syncAllData as syncAllDataCloud,
   validateAccessCode,
   checkPaidStatus,
+  deleteUserData,
 } from "./lib/sync";
 
 const DEFAULT_SCORES = {
@@ -636,10 +637,14 @@ export default function App() {
   // --- Reset ---
 
   const handleReset = async () => {
+    const userId = userIdRef.current;
     try {
       await clearAllData();
     } catch (error) {
       console.log("Error clearing storage:", error);
+    }
+    if (userId) {
+      deleteUserData(userId);
     }
     setCurrentScreen("LANDING");
     setIsPaid(false);

@@ -252,30 +252,60 @@ That's the only change needed. The PaymentGate component reads this constant and
 
 ## Firestore Security Rules
 
-The `accessCodes` collection needs rules that **allow reading individual codes by ID** (the app needs this to validate) but **block listing the entire collection** (prevents someone from enumerating all unused codes).
+Copy-paste the full ruleset below into Firebase Console → Firestore → Rules → Publish.
+
+These rules are **not secret** — they're server-side enforcement. Knowing the rules doesn't help bypass them. It's best practice to document them in the repo.
 
 ```
-match /accessCodes/{code} {
-  // Allow reading a single code by its exact document ID (get)
-  // Block listing/querying the entire collection (list)
-  allow get: if true;
-  allow list: if false;
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-  // Codes can only transition from unused → used (no create, no delete from client)
-  allow update: if resource.data.used == false
-                && request.resource.data.used == true;
+    // --- Users ---
+    match /users/{userId} {
+      allow read, write: if true;
+      match /{subcollection}/{docId} {
+        allow read, write: if true;
+      }
+    }
 
-  allow create, delete: if false;
+    // --- Access Codes ---
+    match /accessCodes/{code} {
+      // Allow reading a single code by its exact document ID (get)
+      // Block listing/querying the entire collection (list)
+      allow get: if true;
+      allow list: if false;
+
+      // Codes can only transition from unused → used (no create, no delete from client)
+      allow update: if resource.data.used == false
+                    && request.resource.data.used == true;
+
+      allow create, delete: if false;
+    }
+  }
 }
 ```
 
-**Why `get: true` but `list: false`?**
-- `get` = reading a single document by exact ID → the app does `getDoc(doc(db, "accessCodes", "WELL-K7NP"))` which requires knowing the code
-- `list` = querying/listing multiple documents → `getDocs(collection(db, "accessCodes"))` which would expose all codes
+### Why `get: true` but `list: false`?
+
+- `get` = reading a single document by exact ID → `getDoc(doc(db, "accessCodes", "WELL-K7NP"))` — requires knowing the code
+- `list` = querying/listing multiple documents → `getDocs(collection(db, "accessCodes"))` — would expose all codes
 
 With these rules, an attacker would need to brute-force guess codes (32^4 = ~1 million combinations) rather than simply listing them.
 
-**Note:** The `generate-codes.js` script uses the client SDK. With `allow create: if false`, you'll need to temporarily allow creates when running the script, or switch the script to use the Firebase Admin SDK with a service account key. See `docs/scripts.md` for details.
+### Generating codes with `allow create: if false`
+
+The `generate-codes.js` script uses the client SDK, so it needs `create` permission. Two options:
+
+1. **Temporarily allow creates**: Change `allow create, delete: if false;` to `allow create: if true; allow delete: if false;` in the console, run the script, change it back immediately
+2. **Keep open during development**: Use the permissive rules below while building, switch to the locked rules above before launch
+
+**Permissive rules (development only):**
+```
+match /accessCodes/{code} {
+  allow read, write, create: if true;
+}
+```
 
 ---
 

@@ -20,7 +20,11 @@ export const ChallengeProgress = ({
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const pillars = Object.keys(TWENTY_ONE_DAY_CHALLENGES);
+  const pillars = Object.keys(TWENTY_ONE_DAY_CHALLENGES).sort((a, b) => {
+    if (a === focusPillar) return -1;
+    if (b === focusPillar) return 1;
+    return 0;
+  });
   const todayKey = new Date().toISOString().split("T")[0];
 
   // Calculate overall stats

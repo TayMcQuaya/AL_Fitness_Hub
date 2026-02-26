@@ -22,7 +22,7 @@ import {
 import { BottomNav } from "./BottomNav";
 
 // DEV_MODE: Set to false to hide dev controls
-const DEV_MODE = true;
+const DEV_MODE = false;
 
 export const ChallengeDetail = ({
   pillarId,

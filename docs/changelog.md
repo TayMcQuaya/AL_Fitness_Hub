@@ -628,3 +628,92 @@ match /accessCodes/{code} {
 ```
 
 **Full details:** See [`docs/payment-gate.md`](./payment-gate.md)
+
+---
+
+## 45. Reset Button — Always Visible + Database Deletion
+
+The reset button on the Dashboard was previously hidden behind `DEV_MODE`. Now it's always visible and deletes both local and cloud data.
+
+### Modified
+- **`lib/sync.js`** — Added `deleteUserData(userId)` function. Deletes the user's Firestore document and all subcollections (dailyLogs, challengeProgress, challengeTasks, bookProgress). Added `getDocs`, `deleteDoc`, `collection` imports.
+- **`App.js`** — `handleReset()` now captures the userId before clearing local storage, then fires `deleteUserData(userId)` as fire-and-forget to wipe cloud data. Imported `deleteUserData`.
+- **`components/Dashboard.js`** — Reset button moved outside `DEV_MODE` guard (always visible). Shows as "Reset All Progress" with red trash icon. Confirmation dialog before executing (native Alert on mobile, `window.confirm` on web). Added `Alert` and `Platform` imports.
+
+### What reset clears
+- All AsyncStorage data (scores, streaks, challenges, paid status)
+- All in-memory state (back to defaults)
+- All Firestore data (user document + all subcollections)
+- Sends user back to the landing page
+
+### What reset does NOT clear
+- The `accessCodes` collection — user's code stays marked as `used: true`, so they can re-enter it after re-onboarding
+
+---
+
+## 46. Disabled DEV_MODE
+
+Turned off `DEV_MODE` in both Dashboard and ChallengeDetail. Dev panels (phase jump buttons, simulate day, etc.) no longer show.
+
+### Modified
+- **`components/Dashboard.js`** — `DEV_MODE = false`
+- **`components/ChallengeDetail.js`** — `DEV_MODE = false`
+
+---
+
+## 47. Focus Pillar First in Challenge List
+
+The focus pillar (weakest/unlocked) now appears at the top of the challenge progress list instead of its fixed position among all pillars.
+
+### Modified
+- **`components/ChallengeProgress.js`** — Sorted `pillars` array so `focusPillar` comes first, rest stay in original order.
+
+---
+
+## 48. Firestore Rules Documentation
+
+Added full copy-paste-ready Firestore security rules to `docs/payment-gate.md`. Rules are safe to document publicly — they're server-side enforcement, not secrets.
+
+### Modified
+- **`docs/payment-gate.md`** — Expanded Firestore Security Rules section with complete `rules_version = '2'` ruleset covering both `users` and `accessCodes` collections. Added development-only permissive rules for code generation. Clarified why documenting rules in a public repo is safe.
+
+---
+
+## 49. Reset Confirmation — Modal Instead of Alert
+
+Replaced the browser `window.confirm` / native `Alert` with a proper in-app Modal for the reset confirmation dialog. Matches the existing milestone modal styling.
+
+### Modified
+- **`components/Dashboard.js`** — Added `showResetModal` state. Reset button now opens a Modal with warning icon, descriptive text, red "Reset Everything" button, and "Cancel" below. Removed unused `Alert` and `Platform` imports.
+
+---
+
+## 50. Export Access Codes Script
+
+New script to export all access codes from Firestore to an Excel spreadsheet with their used/available status.
+
+### Created
+- **`scripts/export-codes.js`** — Node CLI script: `node scripts/export-codes.js`. Fetches all codes from `accessCodes` collection, creates `codes-export.xlsx` with two sheets: Codes (code, status, used by email, user ID, used at, created, batch) and Summary (total/used/available counts). Codes sorted by creation date — order stays consistent across reruns. Supports `--output` flag for custom filename. Re-running overwrites with fresh statuses.
+
+### Modified
+- **`docs/scripts.md`** — Added section 3 documenting export-codes.js usage, output format, and purpose. Updated Quick Reference table and File outputs.
+
+---
+
+## 51. Export Scripts — Output to `exports/` Folder
+
+Both export scripts now save to an `exports/` directory instead of the project root. The folder is auto-created if it doesn't exist.
+
+### Modified
+- **`scripts/export-codes.js`** — Output path changed to `exports/codes-export.xlsx`. Added `fs` import for directory creation.
+- **`scripts/export-users.js`** — Output path changed to `exports/users-export.xlsx`.
+- **`.gitignore`** — Replaced `*.xlsx` with `exports/` directory ignore.
+
+---
+
+## 52. Fix Missing `createdAt` on Normal Onboarding
+
+Users who went through normal onboarding (not "Skip with Random Data") had no `createdAt` timestamp in Firestore because `syncUserProfile()` never set it — only `syncAllData()` (dev mode) did.
+
+### Modified
+- **`lib/sync.js`** — `syncUserProfile()` now checks if the user doc already has a `createdAt` field. If not, it sets `createdAt: serverTimestamp()` on that write. Existing users get backfilled on their next profile sync.
