@@ -1,3 +1,31 @@
+# Session Log — Mar 4, 2026
+
+## Fix: VideoPlayerModal overflow on mobile web
+
+**Problem:** After migrating to `expo-video`, the video modal overflowed the viewport on mobile web in portrait orientation. The video container was ~582px tall on a ~327px wide card, creating extra whitespace below the page and cutting off the video.
+
+**Root cause:** Height calculation used `videoWidth * (16/9)` — a portrait ratio. The videos are **landscape** (16:9), so the multiplier should be the inverse: `9/16`.
+
+### Changes (`components/VideoPlayerModal.js`)
+
+1. **Fixed aspect ratio multiplier** (line 19)
+   - Before: `videoWidth * (16 / 9)` → ~582px height (portrait ratio, wrong)
+   - After: `videoWidth * (9 / 16)` → ~184px height (landscape ratio, correct)
+   - Cap lowered from `screenHeight * 0.7` to `0.6` since the smaller height no longer needs the extra room
+
+2. **Added maxHeight safety on card container** (line 46)
+   - `maxHeight: screenHeight - 80` prevents the card (header + video) from ever exceeding the viewport
+   - 80px accounts for safe area / status bar breathing room on both ends
+
+### Verification
+- `npm run web` → DevTools mobile view (iPhone SE or similar narrow portrait)
+- Trigger Day 10 milestone → tap "Watch Video"
+- Modal centered, video fully visible, no overflow below page
+- Video plays at correct landscape proportions with native controls
+- Resize browser wider/narrower — adapts responsively
+
+---
+
 # Session Log — Feb 22, 2026
 
 ## 1. Data Persistence Layer + Firebase Cloud Sync
@@ -747,3 +775,24 @@ Turned `DEV_MODE` back on in Dashboard and ChallengeDetail while the app is in a
 ### Modified
 - **`components/Dashboard.js`** — `DEV_MODE = true`
 - **`components/ChallengeDetail.js`** — `DEV_MODE = true`
+
+## 55. Pillar Videos — Day 10 Milestone Triggers
+
+Added Coach Al's pillar-specific videos to the Day 10 "Mid-Challenge Video" milestone. When a user reaches Day 10 of their 21-day challenge, the milestone modal now shows a "Watch Video" button that opens a full-screen video player. The milestone timeline in ChallengeDetail also becomes tappable at Day 10 to replay the video.
+
+**Videos** (6 of 7 pillars covered — no sleep video):
+- `breathing.mp4` → Breathing pillar
+- `watering.mp4` → Hydration pillar
+- `food.mp4` → Nutrition pillar
+- `movement.mp4` → Movement pillar
+- `environment.mp4` → Environment pillar
+- `mindfulness.mp4` → Mindfulness pillar
+
+### Created
+- **`components/VideoPlayerModal.js`** — Full-screen video player using expo-av with play/pause, native controls, loading indicator, and replay button
+- **`assets/videos/`** — 6 pillar video files (~22MB total)
+
+### Modified
+- **`constants.js`** — Added `PILLAR_VIDEOS` mapping (pillar ID → require() asset)
+- **`components/Dashboard.js`** — Day 10 milestone now has "Watch Video" button, imports VideoPlayerModal + PILLAR_VIDEOS
+- **`components/ChallengeDetail.js`** — Day 10 milestone now has "Watch Video" button, milestone timeline Day 10 row is tappable to play video, imports VideoPlayerModal + PILLAR_VIDEOS

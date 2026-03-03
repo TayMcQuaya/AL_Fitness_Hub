@@ -22,9 +22,11 @@ import {
   DAY_21_CHALLENGES,
   DAY_21_REWARDS,
   PHASE_ENCOURAGEMENT,
+  PILLAR_VIDEOS,
 } from "../constants";
 import { getMissedDays } from "../lib/storage";
 import { BottomNav } from "./BottomNav";
+import { VideoPlayerModal } from "./VideoPlayerModal";
 
 const DEV_MODE = true;
 const CONFETTI_COLORS = ["#13ec13", "#ec7f13", "#FFD700", "#FF6B6B", "#4ECDC4", "#A78BFA"];
@@ -141,6 +143,7 @@ export const Dashboard = ({
   const [confettiKey, setConfettiKey] = useState(0);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
   // Derive challenge data
   const challenge = TWENTY_ONE_DAY_CHALLENGES[focusPillarId];
@@ -168,7 +171,7 @@ export const Dashboard = ({
     activeMilestones.push({ icon: "emoji-emotions", iconColor: colors.primary, label: "You're Building Momentum!", text: encouragement });
   }
   if (!isCompleted && (currentDay || 1) >= 10 && !ackMilestones.includes(10)) {
-    activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${focusPillar.name.toLowerCase()} journey.` });
+    activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${focusPillar.name.toLowerCase()} journey.`, isVideo: true, videoSource: PILLAR_VIDEOS[focusPillarId] });
   }
   if (!isCompleted && (currentDay || 1) >= 15 && !ackMilestones.includes(15)) {
     activeMilestones.push({ icon: "local-offer", iconColor: colors.warning, label: "15% Off Coaching!", text: null, isDiscount: true });
@@ -504,6 +507,21 @@ export const Dashboard = ({
                             </Text>
                           </TouchableOpacity>
                         </>
+                      ) : m.isVideo && m.videoSource ? (
+                        <>
+                          <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                          <TouchableOpacity
+                            style={styles.watchVideoButton}
+                            onPress={() => {
+                              setShowMilestoneModal(false);
+                              setTimeout(() => setShowVideoPlayer(true), 300);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <MaterialIcons name="play-circle-filled" size={18} color="#111" />
+                            <Text style={styles.watchVideoButtonText}>Watch Video</Text>
+                          </TouchableOpacity>
+                        </>
                       ) : (
                         <Text style={styles.modalMilestoneText}>{m.text}</Text>
                       )}
@@ -521,6 +539,14 @@ export const Dashboard = ({
             </View>
           </View>
         </Modal>
+
+        {/* Video Player Modal */}
+        <VideoPlayerModal
+          visible={showVideoPlayer}
+          videoSource={PILLAR_VIDEOS[focusPillarId]}
+          pillarName={focusPillar.name}
+          onClose={() => setShowVideoPlayer(false)}
+        />
 
         {isCompleted && day21Challenge && (
           <View style={styles.celebrationCard}>
@@ -1472,6 +1498,22 @@ const makeStyles = (colors) =>
       fontSize: 12,
       fontWeight: "700",
       color: colors.text,
+    },
+    watchVideoButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      gap: 8,
+      marginTop: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 10,
+      backgroundColor: colors.primary,
+    },
+    watchVideoButtonText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: "#111",
     },
     celebrationCard: {
       backgroundColor: `${colors.warning}10`,

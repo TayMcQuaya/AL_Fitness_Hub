@@ -394,6 +394,16 @@ export const DAY_21_REWARDS = [
   "Free 1-Hour Training Session with Al",
 ];
 
+// Pillar-specific Coach Al videos (Day 10 milestone)
+export const PILLAR_VIDEOS = {
+  breathing: require("./assets/videos/breathing.mp4"),
+  hydration: require("./assets/videos/watering.mp4"),
+  nutrition: require("./assets/videos/food.mp4"),
+  movement: require("./assets/videos/movement.mp4"),
+  environment: require("./assets/videos/environment.mp4"),
+  mindfulness: require("./assets/videos/mindfulness.mp4"),
+};
+
 // Challenge trigger milestones
 export const CHALLENGE_TRIGGERS = {
   phase1: {

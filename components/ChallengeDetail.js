@@ -18,8 +18,10 @@ import {
   DAY_21_REWARDS,
   CHALLENGE_TRIGGERS,
   PHASE_ENCOURAGEMENT,
+  PILLAR_VIDEOS,
 } from "../constants";
 import { BottomNav } from "./BottomNav";
+import { VideoPlayerModal } from "./VideoPlayerModal";
 
 // DEV_MODE: Set to false to hide dev controls
 const DEV_MODE = true;
@@ -34,6 +36,7 @@ export const ChallengeDetail = ({
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
   const challenge = TWENTY_ONE_DAY_CHALLENGES[pillarId];
   if (!challenge) return null;
@@ -70,7 +73,7 @@ export const ChallengeDetail = ({
     activeMilestones.push({ icon: "emoji-emotions", iconColor: colors.primary, label: "Phase 1 Complete!", text: encouragement });
   }
   if (!isCompleted && currentDay >= 10 && !ackMilestones.includes(10)) {
-    activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${challenge.name.toLowerCase()} journey.` });
+    activeMilestones.push({ icon: "play-circle-filled", iconColor: colors.secondary, label: "Mid-Challenge Video", text: `Watch Coach Al's motivation and tips for your ${challenge.name.toLowerCase()} journey.`, isVideo: true, videoSource: PILLAR_VIDEOS[pillarId] });
   }
   if (!isCompleted && currentDay >= 15 && !ackMilestones.includes(15)) {
     activeMilestones.push({ icon: "local-offer", iconColor: colors.warning, label: "15% Off Coaching!", text: null, isDiscount: true });
@@ -325,6 +328,21 @@ export const ChallengeDetail = ({
                             </Text>
                           </TouchableOpacity>
                         </>
+                      ) : m.isVideo && m.videoSource ? (
+                        <>
+                          <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                          <TouchableOpacity
+                            style={styles.watchVideoButton}
+                            onPress={() => {
+                              setShowMilestoneModal(false);
+                              setTimeout(() => setShowVideoPlayer(true), 300);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <MaterialIcons name="play-circle-filled" size={18} color="#111" />
+                            <Text style={styles.watchVideoButtonText}>Watch Video</Text>
+                          </TouchableOpacity>
+                        </>
                       ) : (
                         <Text style={styles.modalMilestoneText}>{m.text}</Text>
                       )}
@@ -342,6 +360,14 @@ export const ChallengeDetail = ({
             </View>
           </View>
         </Modal>
+
+        {/* Video Player Modal */}
+        <VideoPlayerModal
+          visible={showVideoPlayer}
+          videoSource={PILLAR_VIDEOS[pillarId]}
+          pillarName={challenge.name}
+          onClose={() => setShowVideoPlayer(false)}
+        />
 
         {/* Today's Tasks */}
         {!isCompleted && (
@@ -467,29 +493,37 @@ export const ChallengeDetail = ({
         <View style={styles.milestoneList}>
           {[
             { day: 5, icon: "emoji-emotions", label: "Encouragement", reached: currentDay >= 5 },
-            { day: 10, icon: "play-circle-filled", label: "Coach Al Video", reached: currentDay >= 10 },
+            { day: 10, icon: "play-circle-filled", label: "Coach Al Video", reached: currentDay >= 10, hasVideo: !!PILLAR_VIDEOS[pillarId] },
             { day: 15, icon: "local-offer", label: "15% Discount", reached: currentDay >= 15 },
             { day: 21, icon: "card-giftcard", label: "Free Session Reward", reached: currentDay >= 21 },
-          ].map((milestone, idx) => (
-            <View key={idx} style={[styles.milestoneItem, milestone.reached && styles.milestoneReached]}>
-              <View style={[styles.milestoneIcon, milestone.reached && styles.milestoneIconReached]}>
-                <MaterialIcons
-                  name={milestone.icon}
-                  size={16}
-                  color={milestone.reached ? colors.textInverse : colors.gray[600]}
-                />
-              </View>
-              <View style={styles.milestoneContent}>
-                <Text style={[styles.milestoneLabel, milestone.reached && styles.milestoneLabelReached]}>
-                  Day {milestone.day}
-                </Text>
-                <Text style={styles.milestoneDesc}>{milestone.label}</Text>
-              </View>
-              {milestone.reached && (
-                <MaterialIcons name="check-circle" size={16} color={colors.primary} />
-              )}
-            </View>
-          ))}
+          ].map((milestone, idx) => {
+            const Wrapper = milestone.hasVideo && milestone.reached ? TouchableOpacity : View;
+            const wrapperProps = milestone.hasVideo && milestone.reached ? { onPress: () => setShowVideoPlayer(true), activeOpacity: 0.7 } : {};
+            return (
+              <Wrapper key={idx} style={[styles.milestoneItem, milestone.reached && styles.milestoneReached]} {...wrapperProps}>
+                <View style={[styles.milestoneIcon, milestone.reached && styles.milestoneIconReached]}>
+                  <MaterialIcons
+                    name={milestone.icon}
+                    size={16}
+                    color={milestone.reached ? colors.textInverse : colors.gray[600]}
+                  />
+                </View>
+                <View style={styles.milestoneContent}>
+                  <Text style={[styles.milestoneLabel, milestone.reached && styles.milestoneLabelReached]}>
+                    Day {milestone.day}
+                  </Text>
+                  <Text style={styles.milestoneDesc}>
+                    {milestone.label}{milestone.hasVideo && milestone.reached ? " — Tap to watch" : ""}
+                  </Text>
+                </View>
+                {milestone.hasVideo && milestone.reached ? (
+                  <MaterialIcons name="play-arrow" size={18} color={colors.primary} />
+                ) : milestone.reached ? (
+                  <MaterialIcons name="check-circle" size={16} color={colors.primary} />
+                ) : null}
+              </Wrapper>
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -811,6 +845,22 @@ const makeStyles = (colors) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: colors.text,
+  },
+  watchVideoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 8,
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+  },
+  watchVideoButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111",
   },
   completedBanner: {
     flexDirection: "row",
