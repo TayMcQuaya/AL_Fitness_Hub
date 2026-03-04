@@ -26,6 +26,18 @@
 
 ---
 
+## 56. Added Sleep Pillar Video
+
+Added the final missing pillar video. All 7 pillars now have Coach Al videos for the Day 10 milestone.
+
+### Added
+- **`assets/videos/sleep.mp4`** (3.4 MB) — Sleep pillar video
+
+### Modified
+- **`constants.js`** — Added `sleep: require("./assets/videos/sleep.mp4")` to `PILLAR_VIDEOS`
+
+---
+
 # Session Log — Feb 22, 2026
 
 ## 1. Data Persistence Layer + Firebase Cloud Sync

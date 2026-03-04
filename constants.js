@@ -402,6 +402,7 @@ export const PILLAR_VIDEOS = {
   movement: require("./assets/videos/movement.mp4"),
   environment: require("./assets/videos/environment.mp4"),
   mindfulness: require("./assets/videos/mindfulness.mp4"),
+  sleep: require("./assets/videos/sleep.mp4"),
 };
 
 // Challenge trigger milestones
