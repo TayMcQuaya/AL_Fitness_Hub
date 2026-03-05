@@ -504,7 +504,7 @@ export const ChallengeDetail = ({
               style={styles.completionModalCta}
               onPress={() => {
                 setShowCompletionModal(false);
-                Linking.openURL("https://calendly.com");
+                Linking.openURL("https://calendly.com/growyourmusclesstudio-info/30min");
               }}
               activeOpacity={0.8}
             >

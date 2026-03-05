@@ -491,7 +491,7 @@ export const Dashboard = ({
             </View>
             <TouchableOpacity
               style={styles.scheduleButton}
-              onPress={() => Linking.openURL("https://calendly.com")}
+              onPress={() => Linking.openURL("https://calendly.com/growyourmusclesstudio-info/30min")}
               activeOpacity={0.7}
             >
               <MaterialIcons name="event" size={20} color={colors.textInverse} />
@@ -669,7 +669,7 @@ export const Dashboard = ({
           </Text>
           <TouchableOpacity
             style={styles.ctaButton}
-            onPress={() => Linking.openURL("https://calendly.com")}
+            onPress={() => Linking.openURL("https://calendly.com/growyourmusclesstudio-info/30min")}
           >
             <Text style={styles.ctaButtonText}>Book a Free Call</Text>
             <MaterialIcons
@@ -799,7 +799,7 @@ export const Dashboard = ({
               style={styles.completionModalCta}
               onPress={() => {
                 setShowCompletionModal(false);
-                Linking.openURL("https://calendly.com");
+                Linking.openURL("https://calendly.com/growyourmusclesstudio-info/30min");
               }}
               activeOpacity={0.8}
             >

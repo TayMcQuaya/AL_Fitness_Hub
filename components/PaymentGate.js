@@ -109,7 +109,7 @@ export const PaymentGate = ({
 
   const handleOpenStore = () => {
     Linking.openURL(STAN_STORE_URL).catch(() => {
-      setError("Could not open store link. Visit stan.store/coachal in your browser.");
+      setError("Could not open store link. Visit stan.store/Althetrainer in your browser.");
     });
   };
 

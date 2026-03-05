@@ -1,5 +1,20 @@
 # Session Log — Mar 5, 2026
 
+## 60. Live Stan Store + Calendly Links
+
+Replaced all placeholder URLs with Coach Al's actual links.
+
+### Stan Store → `https://stan.store/Althetrainer/p/the-50-accountability-challenge`
+- **`constants.js`** — Updated `STAN_STORE_URL` (was `stan.store/coachal`)
+- **`components/PaymentGate.js`** — Updated fallback error message to reference `stan.store/Althetrainer`
+- Appears on: PaymentGate "Get Full Access" button (shown after completing the questionnaire)
+
+### Calendly → `https://calendly.com/growyourmusclesstudio-info/30min`
+- **`components/Dashboard.js`** — Updated 3 occurrences (Day 21 celebration, bottom CTA card, completion modal)
+- **`components/ChallengeDetail.js`** — Updated 1 occurrence (completion modal)
+
+---
+
 ## 59. Dev Controls — Time Simulation on ChallengeDetail
 
 Added the same `-1 Day` / `+1 Day` / `Reset` time simulation controls from Dashboard to ChallengeDetail, so day advancement can be tested without switching screens.

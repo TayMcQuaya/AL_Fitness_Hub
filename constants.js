@@ -748,4 +748,4 @@ export const SCREENS = {
 };
 
 // Stan Store product URL (update when product is live)
-export const STAN_STORE_URL = "https://stan.store/coachal";
+export const STAN_STORE_URL = "https://stan.store/Althetrainer/p/the-50-accountability-challenge";
