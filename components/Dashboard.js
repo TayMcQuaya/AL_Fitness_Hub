@@ -144,6 +144,7 @@ export const Dashboard = ({
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // Derive challenge data
   const challenge = TWENTY_ONE_DAY_CHALLENGES[focusPillarId];
@@ -184,7 +185,11 @@ export const Dashboard = ({
       const milestones = [5, 10, 15, 21];
       if (milestones.includes(currentDay)) {
         setConfettiKey((k) => k + 1);
-        if (activeMilestones.length > 0) setShowMilestoneModal(true);
+        if (currentDay >= 21) {
+          setShowCompletionModal(true);
+        } else if (activeMilestones.length > 0) {
+          setShowMilestoneModal(true);
+        }
       }
     }
     prevDayRef.current = currentDay;
@@ -462,92 +467,6 @@ export const Dashboard = ({
           </TouchableOpacity>
         )}
 
-        {/* Milestone Modal */}
-        <Modal
-          visible={showMilestoneModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowMilestoneModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <MaterialIcons name="stars" size={32} color={colors.warning} />
-                <Text style={styles.modalTitle}>Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked!</Text>
-              </View>
-              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                {activeMilestones.map((m, idx) => (
-                  <View key={idx} style={styles.modalMilestone}>
-                    <MaterialIcons name={m.icon} size={28} color={m.iconColor} />
-                    <View style={styles.modalMilestoneContent}>
-                      <Text style={styles.modalMilestoneLabel}>{m.label}</Text>
-                      {m.isDiscount ? (
-                        <>
-                          <Text style={styles.modalMilestoneText}>
-                            Use code{" "}
-                            <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
-                            {" "}for 15% off coaching packages. You've earned it!
-                          </Text>
-                          <TouchableOpacity
-                            style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
-                            onPress={async () => {
-                              await Clipboard.setStringAsync("PILLAR15");
-                              setCodeCopied(true);
-                              setTimeout(() => setCodeCopied(false), 2000);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <MaterialIcons
-                              name={codeCopied ? "check" : "content-copy"}
-                              size={14}
-                              color={codeCopied ? colors.primary : colors.text}
-                            />
-                            <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
-                              {codeCopied ? "Copied!" : "Copy Code"}
-                            </Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : m.isVideo && m.videoSource ? (
-                        <>
-                          <Text style={styles.modalMilestoneText}>{m.text}</Text>
-                          <TouchableOpacity
-                            style={styles.watchVideoButton}
-                            onPress={() => {
-                              setShowMilestoneModal(false);
-                              setTimeout(() => setShowVideoPlayer(true), 300);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <MaterialIcons name="play-circle-filled" size={18} color="#111" />
-                            <Text style={styles.watchVideoButtonText}>Watch Video</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : (
-                        <Text style={styles.modalMilestoneText}>{m.text}</Text>
-                      )}
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-              <TouchableOpacity
-                style={styles.modalDismiss}
-                onPress={() => setShowMilestoneModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.modalDismissText}>Got It!</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Video Player Modal */}
-        <VideoPlayerModal
-          visible={showVideoPlayer}
-          videoSource={PILLAR_VIDEOS[focusPillarId]}
-          pillarName={focusPillar.name}
-          onClose={() => setShowVideoPlayer(false)}
-        />
-
         {isCompleted && day21Challenge && (
           <View style={styles.celebrationCard}>
             <View style={styles.celebrationHeader}>
@@ -769,43 +688,171 @@ export const Dashboard = ({
           <Text style={[styles.resetButtonText, { color: colors.error || "#FF6B6B" }]}>Reset All Progress</Text>
         </TouchableOpacity>
 
-        {/* Reset Confirmation Modal */}
-        <Modal
-          visible={showResetModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowResetModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <MaterialIcons name="warning" size={32} color={colors.error} />
-                <Text style={styles.modalTitle}>Reset All Progress?</Text>
-              </View>
-              <Text style={styles.resetModalText}>
-                This will erase everything — scores, streaks, challenges, and cloud data. You'll start from scratch.{"\n\n"}This cannot be undone.
-              </Text>
-              <TouchableOpacity
-                style={styles.resetModalConfirm}
-                onPress={() => {
-                  setShowResetModal(false);
-                  onReset();
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.resetModalConfirmText}>Reset Everything</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.resetModalCancel}
-                onPress={() => setShowResetModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.resetModalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
+
+      {/* Milestone Modal */}
+      <Modal
+        visible={showMilestoneModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMilestoneModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="stars" size={32} color={colors.warning} />
+              <Text style={styles.modalTitle}>Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked!</Text>
+            </View>
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              {activeMilestones.map((m, idx) => (
+                <View key={idx} style={styles.modalMilestone}>
+                  <MaterialIcons name={m.icon} size={28} color={m.iconColor} />
+                  <View style={styles.modalMilestoneContent}>
+                    <Text style={styles.modalMilestoneLabel}>{m.label}</Text>
+                    {m.isDiscount ? (
+                      <>
+                        <Text style={styles.modalMilestoneText}>
+                          Use code{" "}
+                          <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
+                          {" "}for 15% off coaching packages. You've earned it!
+                        </Text>
+                        <TouchableOpacity
+                          style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
+                          onPress={async () => {
+                            await Clipboard.setStringAsync("PILLAR15");
+                            setCodeCopied(true);
+                            setTimeout(() => setCodeCopied(false), 2000);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <MaterialIcons
+                            name={codeCopied ? "check" : "content-copy"}
+                            size={14}
+                            color={codeCopied ? colors.primary : colors.text}
+                          />
+                          <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
+                            {codeCopied ? "Copied!" : "Copy Code"}
+                          </Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : m.isVideo && m.videoSource ? (
+                      <>
+                        <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                        <TouchableOpacity
+                          style={styles.watchVideoButton}
+                          onPress={() => {
+                            setShowMilestoneModal(false);
+                            setTimeout(() => setShowVideoPlayer(true), 300);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <MaterialIcons name="play-circle-filled" size={18} color="#111" />
+                          <Text style={styles.watchVideoButtonText}>Watch Video</Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalDismiss}
+              onPress={() => setShowMilestoneModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalDismissText}>Got It!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        visible={showVideoPlayer}
+        videoSource={PILLAR_VIDEOS[focusPillarId]}
+        pillarName={focusPillar.name}
+        onClose={() => setShowVideoPlayer(false)}
+      />
+
+      {/* Completion Modal */}
+      <Modal
+        visible={showCompletionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCompletionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { borderColor: `${colors.primary}40` }]}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="emoji-events" size={48} color={colors.warning} />
+              <Text style={styles.modalTitle}>Congratulations!</Text>
+            </View>
+            <Text style={styles.completionModalText}>
+              You crushed the 21-Day {focusPillar.name} Challenge! That takes real discipline and commitment — Coach Al is proud of you.
+            </Text>
+            <Text style={styles.completionModalText}>
+              You've earned a free coaching call. Book your session with Al and let's map out your next level.
+            </Text>
+            <TouchableOpacity
+              style={styles.completionModalCta}
+              onPress={() => {
+                setShowCompletionModal(false);
+                Linking.openURL("https://calendly.com");
+              }}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="event" size={22} color={colors.textInverse} />
+              <Text style={styles.completionModalCtaText}>Book Your Free Call with Al</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowCompletionModal(false)}
+              activeOpacity={0.7}
+              style={styles.completionModalDismiss}
+            >
+              <Text style={styles.completionModalDismissText}>Maybe Later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Reset Confirmation Modal */}
+      <Modal
+        visible={showResetModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowResetModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="warning" size={32} color={colors.error} />
+              <Text style={styles.modalTitle}>Reset All Progress?</Text>
+            </View>
+            <Text style={styles.resetModalText}>
+              This will erase everything — scores, streaks, challenges, and cloud data. You'll start from scratch.{"\n\n"}This cannot be undone.
+            </Text>
+            <TouchableOpacity
+              style={styles.resetModalConfirm}
+              onPress={() => {
+                setShowResetModal(false);
+                onReset();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.resetModalConfirmText}>Reset Everything</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.resetModalCancel}
+              onPress={() => setShowResetModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.resetModalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <BottomNav currentScreen="DASHBOARD" onNavigate={onNavigate} />
     </View>
@@ -1424,6 +1471,37 @@ const makeStyles = (colors) =>
       fontSize: 18,
       fontWeight: "800",
       color: colors.textInverse,
+    },
+    completionModalText: {
+      fontSize: 16,
+      color: colors.gray[300],
+      lineHeight: 24,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    completionModalCta: {
+      backgroundColor: colors.primary,
+      borderRadius: 14,
+      paddingVertical: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      marginTop: 8,
+    },
+    completionModalCtaText: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: colors.textInverse,
+    },
+    completionModalDismiss: {
+      alignItems: "center",
+      paddingVertical: 14,
+    },
+    completionModalDismissText: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontWeight: "600",
     },
     resetModalText: {
       fontSize: 15,

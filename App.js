@@ -925,6 +925,7 @@ export default function App() {
             onToggleTask={handleToggleChallengeTask}
             onNavigate={navigateTo}
             onSetDay={handleSetChallengeDay}
+            onDevSimulate={handleDevSimulateDay}
           />
         ) : (
           <ChallengeProgress

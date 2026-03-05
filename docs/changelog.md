@@ -1,3 +1,46 @@
+# Session Log — Mar 5, 2026
+
+## 59. Dev Controls — Time Simulation on ChallengeDetail
+
+Added the same `-1 Day` / `+1 Day` / `Reset` time simulation controls from Dashboard to ChallengeDetail, so day advancement can be tested without switching screens.
+
+### Modified
+- **`App.js`** — Passes `onDevSimulate={handleDevSimulateDay}` to ChallengeDetail
+- **`components/ChallengeDetail.js`** — Accepts `onDevSimulate` prop. Added time simulation button row and debug readout (`Start | Day | Done | Missed`) below existing phase jump buttons. Added `getMissedDays` import from storage, `completedDays`/`missedDays` derivation, and `devInfoText` style.
+
+---
+
+## 58. Fix: Modals Not Centering on Mobile Web
+
+**Problem:** All modals (milestone triggers, video player, reset confirmation) were rendered inside the `ScrollView` in both Dashboard and ChallengeDetail. On mobile web, React Native's `<Modal transparent>` doesn't get proper full-viewport positioning inside a scroll container — the overlay gets constrained by the scroll content instead of covering the full screen, pushing the modal card down and cutting off the header.
+
+**Fix:** Moved all modals outside the `ScrollView` to be siblings of it within the root `<View style={{flex: 1}}>` container, between `</ScrollView>` and `<BottomNav>`.
+
+### Modified
+- **`components/Dashboard.js`** — Moved 4 modals (Milestone, VideoPlayer, Completion, Reset) outside ScrollView
+- **`components/ChallengeDetail.js`** — Moved 3 modals (Completion, Milestone, VideoPlayer) outside ScrollView
+
+---
+
+## 57. Challenge Completion Modal
+
+Added a congratulatory modal that pops up when a user finishes their 21-day challenge, prompting them to book a free coaching call with Al.
+
+### How it works
+- Auto-triggers once when `currentDay` reaches 21 (via existing `useEffect` on day transitions)
+- Confetti fires alongside it (existing behavior)
+- Trophy icon + "Congratulations!" header
+- Personalized message referencing their pillar challenge
+- Green "Book Your Free Call with Al" CTA button (opens Calendly)
+- "Maybe Later" dismiss link
+- Won't re-trigger on subsequent visits — inline celebration cards handle that
+
+### Modified
+- **`components/Dashboard.js`** — Added `showCompletionModal` state, completion modal JSX with CTA, updated `useEffect` to show completion modal at Day 21 instead of milestone modal, added completion modal styles
+- **`components/ChallengeDetail.js`** — Same: added `showCompletionModal` state, completion modal JSX, updated `useEffect`, added `Linking` import and completion modal styles
+
+---
+
 # Session Log — Mar 4, 2026
 
 ## Fix: VideoPlayerModal overflow on mobile web

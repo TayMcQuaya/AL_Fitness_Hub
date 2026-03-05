@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
+  Linking,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -20,6 +21,7 @@ import {
   PHASE_ENCOURAGEMENT,
   PILLAR_VIDEOS,
 } from "../constants";
+import { getMissedDays } from "../lib/storage";
 import { BottomNav } from "./BottomNav";
 import { VideoPlayerModal } from "./VideoPlayerModal";
 
@@ -32,6 +34,7 @@ export const ChallengeDetail = ({
   onToggleTask,
   onNavigate,
   onSetDay,
+  onDevSimulate,
 }) => {
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -52,6 +55,8 @@ export const ChallengeDetail = ({
   const progressPercent = Math.min(100, Math.round((currentDay / totalDays) * 100));
   const isCompleted = currentDay >= 21;
   const isDay21 = currentDay === 21;
+  const completedDays = (challengeState && challengeState.completedDays) || 0;
+  const missedDays = getMissedDays(challengeState);
 
   // Get tasks for current phase
   const availableTasks = challenge.tasks.filter(
@@ -66,6 +71,7 @@ export const ChallengeDetail = ({
   const day21Challenge = DAY_21_CHALLENGES[pillarId];
   const encouragement = PHASE_ENCOURAGEMENT[pillarId];
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // Build active milestones for modal (only unacknowledged ones)
   const activeMilestones = [];
@@ -83,9 +89,13 @@ export const ChallengeDetail = ({
   const prevDayRef = useRef(currentDay);
   useEffect(() => {
     if (currentDay >= 5 && prevDayRef.current !== currentDay) {
-      const milestones = [5, 10, 15];
-      if (milestones.includes(currentDay) && activeMilestones.length > 0) {
-        setShowMilestoneModal(true);
+      const milestones = [5, 10, 15, 21];
+      if (milestones.includes(currentDay)) {
+        if (currentDay >= 21) {
+          setShowCompletionModal(true);
+        } else if (activeMilestones.length > 0) {
+          setShowMilestoneModal(true);
+        }
       }
     }
     prevDayRef.current = currentDay;
@@ -144,6 +154,36 @@ export const ChallengeDetail = ({
               <Text style={styles.devWeekButtonSub}>Done</Text>
             </TouchableOpacity>
           </View>
+          {onDevSimulate && (
+            <>
+              <Text style={[styles.devPanelLabel, { marginTop: 10 }]}>
+                DEV: Time Simulation
+              </Text>
+              <View style={styles.devButtonRow}>
+                <TouchableOpacity
+                  style={styles.devWeekButton}
+                  onPress={() => onDevSimulate(pillarId, "back1")}
+                >
+                  <Text style={styles.devWeekButtonText}>-1 Day</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.devWeekButton}
+                  onPress={() => onDevSimulate(pillarId, "forward1")}
+                >
+                  <Text style={styles.devWeekButtonText}>+1 Day</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.devWeekButton}
+                  onPress={() => onDevSimulate(pillarId, "reset")}
+                >
+                  <Text style={styles.devWeekButtonText}>Reset</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.devInfoText}>
+                Start: {challengeState?.startDate || "none"} | Day: {currentDay}/21 | Done: {completedDays} | Missed: {missedDays}
+              </Text>
+            </>
+          )}
         </View>
       )}
 
@@ -282,92 +322,6 @@ export const ChallengeDetail = ({
             <MaterialIcons name="chevron-right" size={20} color={colors.warning} />
           </TouchableOpacity>
         )}
-
-        {/* Milestone Modal */}
-        <Modal
-          visible={showMilestoneModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowMilestoneModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <MaterialIcons name="stars" size={32} color={colors.warning} />
-                <Text style={styles.modalTitle}>Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked!</Text>
-              </View>
-              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-                {activeMilestones.map((m, idx) => (
-                  <View key={idx} style={styles.modalMilestone}>
-                    <MaterialIcons name={m.icon} size={28} color={m.iconColor} />
-                    <View style={styles.modalMilestoneContent}>
-                      <Text style={styles.modalMilestoneLabel}>{m.label}</Text>
-                      {m.isDiscount ? (
-                        <>
-                          <Text style={styles.modalMilestoneText}>
-                            Use code{" "}
-                            <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
-                            {" "}for 15% off coaching packages. You've earned it!
-                          </Text>
-                          <TouchableOpacity
-                            style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
-                            onPress={async () => {
-                              await Clipboard.setStringAsync("PILLAR15");
-                              setCodeCopied(true);
-                              setTimeout(() => setCodeCopied(false), 2000);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <MaterialIcons
-                              name={codeCopied ? "check" : "content-copy"}
-                              size={14}
-                              color={codeCopied ? colors.primary : colors.text}
-                            />
-                            <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
-                              {codeCopied ? "Copied!" : "Copy Code"}
-                            </Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : m.isVideo && m.videoSource ? (
-                        <>
-                          <Text style={styles.modalMilestoneText}>{m.text}</Text>
-                          <TouchableOpacity
-                            style={styles.watchVideoButton}
-                            onPress={() => {
-                              setShowMilestoneModal(false);
-                              setTimeout(() => setShowVideoPlayer(true), 300);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <MaterialIcons name="play-circle-filled" size={18} color="#111" />
-                            <Text style={styles.watchVideoButtonText}>Watch Video</Text>
-                          </TouchableOpacity>
-                        </>
-                      ) : (
-                        <Text style={styles.modalMilestoneText}>{m.text}</Text>
-                      )}
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-              <TouchableOpacity
-                style={styles.modalDismiss}
-                onPress={() => setShowMilestoneModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.modalDismissText}>Got It!</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Video Player Modal */}
-        <VideoPlayerModal
-          visible={showVideoPlayer}
-          videoSource={PILLAR_VIDEOS[pillarId]}
-          pillarName={challenge.name}
-          onClose={() => setShowVideoPlayer(false)}
-        />
 
         {/* Today's Tasks */}
         {!isCompleted && (
@@ -526,6 +480,133 @@ export const ChallengeDetail = ({
           })}
         </View>
       </ScrollView>
+
+      {/* Completion Modal */}
+      <Modal
+        visible={showCompletionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCompletionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { borderColor: `${colors.primary}40` }]}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="emoji-events" size={48} color={colors.warning} />
+              <Text style={styles.modalTitle}>Congratulations!</Text>
+            </View>
+            <Text style={styles.completionModalText}>
+              You crushed the 21-Day {challenge.name} Challenge! That takes real discipline and commitment — Coach Al is proud of you.
+            </Text>
+            <Text style={styles.completionModalText}>
+              You've earned a free coaching call. Book your session with Al and let's map out your next level.
+            </Text>
+            <TouchableOpacity
+              style={styles.completionModalCta}
+              onPress={() => {
+                setShowCompletionModal(false);
+                Linking.openURL("https://calendly.com");
+              }}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="event" size={22} color={colors.textInverse} />
+              <Text style={styles.completionModalCtaText}>Book Your Free Call with Al</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowCompletionModal(false)}
+              activeOpacity={0.7}
+              style={styles.completionModalDismiss}
+            >
+              <Text style={styles.completionModalDismissText}>Maybe Later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Milestone Modal */}
+      <Modal
+        visible={showMilestoneModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMilestoneModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="stars" size={32} color={colors.warning} />
+              <Text style={styles.modalTitle}>Milestone{activeMilestones.length > 1 ? "s" : ""} Unlocked!</Text>
+            </View>
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              {activeMilestones.map((m, idx) => (
+                <View key={idx} style={styles.modalMilestone}>
+                  <MaterialIcons name={m.icon} size={28} color={m.iconColor} />
+                  <View style={styles.modalMilestoneContent}>
+                    <Text style={styles.modalMilestoneLabel}>{m.label}</Text>
+                    {m.isDiscount ? (
+                      <>
+                        <Text style={styles.modalMilestoneText}>
+                          Use code{" "}
+                          <Text style={{ fontWeight: "800", color: colors.text }}>PILLAR15</Text>
+                          {" "}for 15% off coaching packages. You've earned it!
+                        </Text>
+                        <TouchableOpacity
+                          style={[styles.copyButton, codeCopied && styles.copyButtonCopied]}
+                          onPress={async () => {
+                            await Clipboard.setStringAsync("PILLAR15");
+                            setCodeCopied(true);
+                            setTimeout(() => setCodeCopied(false), 2000);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <MaterialIcons
+                            name={codeCopied ? "check" : "content-copy"}
+                            size={14}
+                            color={codeCopied ? colors.primary : colors.text}
+                          />
+                          <Text style={[styles.copyButtonText, codeCopied && { color: colors.primary }]}>
+                            {codeCopied ? "Copied!" : "Copy Code"}
+                          </Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : m.isVideo && m.videoSource ? (
+                      <>
+                        <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                        <TouchableOpacity
+                          style={styles.watchVideoButton}
+                          onPress={() => {
+                            setShowMilestoneModal(false);
+                            setTimeout(() => setShowVideoPlayer(true), 300);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <MaterialIcons name="play-circle-filled" size={18} color="#111" />
+                          <Text style={styles.watchVideoButtonText}>Watch Video</Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <Text style={styles.modalMilestoneText}>{m.text}</Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalDismiss}
+              onPress={() => setShowMilestoneModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalDismissText}>Got It!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        visible={showVideoPlayer}
+        videoSource={PILLAR_VIDEOS[pillarId]}
+        pillarName={challenge.name}
+        onClose={() => setShowVideoPlayer(false)}
+      />
 
       <BottomNav currentScreen="CHALLENGE_DETAIL" onNavigate={onNavigate} />
     </View>
@@ -823,6 +904,37 @@ const makeStyles = (colors) => StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     color: colors.textInverse,
+  },
+  completionModalText: {
+    fontSize: 16,
+    color: colors.gray[300],
+    lineHeight: 24,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  completionModalCta: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 8,
+  },
+  completionModalCtaText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.textInverse,
+  },
+  completionModalDismiss: {
+    alignItems: "center",
+    paddingVertical: 14,
+  },
+  completionModalDismissText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    fontWeight: "600",
   },
   copyButton: {
     flexDirection: 'row',
@@ -1160,5 +1272,12 @@ const makeStyles = (colors) => StyleSheet.create({
   devCompleteButton: {
     backgroundColor: `${colors.warning}20`,
     borderColor: `${colors.warning}40`,
+  },
+  devInfoText: {
+    fontSize: 10,
+    fontFamily: "monospace",
+    color: "#ef4444",
+    textAlign: "center",
+    marginTop: 6,
   },
 });
