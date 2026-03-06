@@ -1,5 +1,41 @@
 # Session Log — Mar 5, 2026
 
+## 62. Sleep Scoring — Coach Al's Scale
+
+Updated the sleep pillar scoring formula to use Coach Al's specified hours-to-score mapping. Wake energy remains as a secondary factor.
+
+### New Hours Scale
+| Hours | Score |
+|-------|-------|
+| 4 or less | 0 |
+| 5 | 2.5 |
+| 6 | 5 |
+| 7 | 7.5 |
+| 8+ | 10 |
+
+### Formula Change
+- **Before:** Additive point system — `1 + sleepPoints(0-4) + energyPoints(1-5)`, capped at 10
+- **After:** Average of hours score (0-10) and energy score (raw 1-10 slider), rounded, clamped 1-10
+- "I don't know" defaults to 5 (neutral midpoint) instead of +2 points
+
+### Modified
+- **`components/IntakeBreathingSleep.js`** — Rewrote `calculateSleepScore()` with Coach Al's hours scale and averaging formula
+- **`docs/pillar-scoring.md`** — Updated Sleep section with new scale, formula, and examples table
+
+---
+
+## 61. Intake Movement — Weekly Frequency Labels
+
+Coach Al requested the cardio and resistance training frequency questions explicitly state "Weekly" so users know the timeframe.
+
+### Modified
+- **`components/IntakeMovement.js`**:
+  - "Resistance Training Frequency" → "Weekly Resistance Training"
+  - "Cardio Training Frequency" → "Weekly Cardio Training"
+  - Button labels remain "Days" (header provides the weekly context)
+
+---
+
 ## 60. Live Stan Store + Calendly Links
 
 Replaced all placeholder URLs with Coach Al's actual links.

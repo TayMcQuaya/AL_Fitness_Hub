@@ -116,7 +116,7 @@ export const IntakeMovement = ({ onNext, onBack, initialData }) => {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>Resistance Training Frequency</Text>
+            <Text style={styles.sectionLabel}>Weekly Resistance Training</Text>
             <TouchableOpacity
               style={[styles.unsureToggle, unsureFreq && styles.unsureToggleActive]}
               onPress={() => setUnsureFreq(!unsureFreq)}
@@ -147,7 +147,7 @@ export const IntakeMovement = ({ onNext, onBack, initialData }) => {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>Cardio Training Frequency</Text>
+            <Text style={styles.sectionLabel}>Weekly Cardio Training</Text>
             <TouchableOpacity
               style={[styles.unsureToggle, unsureCardio && styles.unsureToggleActive]}
               onPress={() => setUnsureCardio(!unsureCardio)}

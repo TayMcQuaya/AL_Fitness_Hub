@@ -49,45 +49,42 @@ No              →  3/10   Needs Focus
 1. How many hours do you sleep on average? (slider: 4–10)
 2. How energetic do you feel when you wake up? (slider: 1–10)
 
-Both factors contribute to the score. If you tap "I don't know" on either, you get a neutral middle value for that factor.
+Both factors contribute equally to the final score (averaged). If you tap "I don't know" on either, that factor defaults to 5 (neutral midpoint).
 
-### Sleep Hours Points
+### Sleep Hours Score (Coach Al's scale)
 
 ```
-Hours of Sleep         Points Earned
+Hours of Sleep         Score (0–10)
 ──────────────────────────────────────
-9 or more hours    →   +4
-8 hours            →   +3
-7 hours            →   +2
-6 hours            →   +1
-Less than 6        →   +0
-"I don't know"     →   +2  (neutral)
+8 or more hours    →   10
+7 hours            →   7.5
+6 hours            →   5
+5 hours            →   2.5
+4 or less          →   0
+"I don't know"     →   5  (neutral)
 ```
 
-### Wake Energy Points
+### Wake Energy Score
 
 ```
-Energy Level (1–10)    Points Earned
+Energy Level (1–10)    Score (1–10)
 ──────────────────────────────────────
-9–10  (amazing)    →   +5
-7–8   (good)       →   +4
-5–6   (okay)       →   +3
-3–4   (low)        →   +2
-1–2   (exhausted)  →   +1
-"I don't know"     →   +2  (neutral)
+Uses the raw slider value directly.
+"I don't know"     →   5  (neutral)
 ```
 
-### Final Sleep Score = 1 + Sleep Points + Energy Points (capped at 10)
+### Final Sleep Score = round( (Hours Score + Energy Score) / 2 ), clamped 1–10
 
 ### Examples
 
-| Person | Sleep | Energy | Calculation | Score |
-|--------|-------|--------|-------------|-------|
-| Great sleeper | 9 hrs | 9/10 | 1 + 4 + 5 | **10/10** |
-| Good sleeper | 8 hrs | 7/10 | 1 + 3 + 4 | **8/10** |
-| Average | 7 hrs | 5/10 | 1 + 2 + 3 | **6/10** |
-| Struggling | 6 hrs | 3/10 | 1 + 1 + 2 | **4/10** |
-| Poor sleep | 5 hrs | 2/10 | 1 + 0 + 1 | **2/10** |
+| Person | Sleep | Hours Score | Energy | Energy Score | Average | Final |
+|--------|-------|-------------|--------|--------------|---------|-------|
+| Great sleeper | 8 hrs | 10 | 9/10 | 9 | 9.5 | **10/10** |
+| Good sleeper | 7 hrs | 7.5 | 7/10 | 7 | 7.25 | **7/10** |
+| Average | 7 hrs | 7.5 | 5/10 | 5 | 6.25 | **6/10** |
+| Struggling | 6 hrs | 5 | 3/10 | 3 | 4 | **4/10** |
+| Poor sleep | 5 hrs | 2.5 | 2/10 | 2 | 2.25 | **2/10** |
+| Worst case | 4 hrs | 0 | 1/10 | 1 | 0.5 | **1/10** |
 
 ---
 
