@@ -222,7 +222,7 @@ export const LandingPage = ({ onGetStarted }) => {
                   ]}
                 >
                   <Image
-                    source={{ uri: `https://i.pravatar.cc/100?img=${i + 10}` }}
+                    source={{ uri: `https://picsum.photos/100?avatar=${i}` }}
                     style={styles.avatarImage}
                   />
                 </View>
