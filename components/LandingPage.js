@@ -214,18 +214,14 @@ export const LandingPage = ({ onGetStarted }) => {
           <View style={styles.socialProof}>
             <View style={styles.avatarStack}>
               {[1, 2, 3, 4].map((i) => (
-                <View
+                <Image
                   key={i}
+                  source={{ uri: `https://picsum.photos/100?avatar=${i}` }}
                   style={[
-                    styles.avatar,
+                    styles.avatarImage,
                     { marginLeft: i > 1 ? -12 : 0, zIndex: 5 - i },
                   ]}
-                >
-                  <Image
-                    source={{ uri: `https://picsum.photos/100?avatar=${i}` }}
-                    style={styles.avatarImage}
-                  />
-                </View>
+                />
               ))}
             </View>
             <Text style={styles.socialProofText}>
@@ -732,17 +728,13 @@ const makeStyles = (colors, width) => {
   avatarStack: {
     flexDirection: "row",
   },
-  avatar: {
+  avatarImage: {
     width: 36,
     height: 36,
     borderRadius: 18,
     borderWidth: 2,
     borderColor: colors.background,
-    overflow: "hidden",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
+    backgroundColor: colors.gray[600],
   },
   socialProofText: {
     color: colors.gray[400],
