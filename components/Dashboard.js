@@ -28,7 +28,7 @@ import { getMissedDays } from "../lib/storage";
 import { BottomNav } from "./BottomNav";
 import { VideoPlayerModal } from "./VideoPlayerModal";
 
-const DEV_MODE = true;
+const DEV_MODE = false;
 const CONFETTI_COLORS = ["#13ec13", "#ec7f13", "#FFD700", "#FF6B6B", "#4ECDC4", "#A78BFA"];
 const CONFETTI_COUNT = 24;
 const SCREEN_WIDTH = Dimensions.get("window").width;

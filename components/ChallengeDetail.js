@@ -26,7 +26,7 @@ import { BottomNav } from "./BottomNav";
 import { VideoPlayerModal } from "./VideoPlayerModal";
 
 // DEV_MODE: Set to false to hide dev controls
-const DEV_MODE = true;
+const DEV_MODE = false;
 
 export const ChallengeDetail = ({
   pillarId,

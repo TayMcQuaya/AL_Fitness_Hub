@@ -1,5 +1,17 @@
 # Session Log — Mar 11, 2026
 
+## 78. Disable DEV_MODE for Production
+
+Set `DEV_MODE = false` in Dashboard and ChallengeDetail. Dev panels (phase jump, simulate day, reset buttons) are hidden from users.
+
+### Modified
+- **`components/Dashboard.js`** — `DEV_MODE = false`
+- **`components/ChallengeDetail.js`** — `DEV_MODE = false`
+
+WelcomeScreen was already `false`. Flip back to `true` for testing.
+
+---
+
 ## 77. Weakest Pillar Tiebreaker — Priority by Pillar Order
 
 When multiple pillars tie for the lowest score, the app now picks the one with the lowest index in the PILLARS array (higher priority). Previously the winner was arbitrary (depended on JS object key order).
