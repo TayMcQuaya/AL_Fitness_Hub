@@ -1,3 +1,58 @@
+# Session Log — Mar 11, 2026
+
+## 68. Task Text Review Doc for Coach Al
+
+Generated a Word document (`exports/task-text-review.docx`) containing all 28 challenge tasks across 7 pillars for Coach Al to review and suggest text changes. Generator script at `scripts/generate-task-review.js`.
+
+---
+
+## 67. Declutter Zone — Wording Update
+
+Updated task description from "your space" to "your living space" for clarity.
+
+### Modified
+- **`constants.js`** — Updated Declutter Zone description (1 instance)
+- **`21-day-challenges.md`** — Updated all 3 phase references
+
+---
+
+## 66. Water Target — Hardcoded 12 Cups
+
+Coach Al requested a flat 12 cups/day for all users instead of the weight-based formula.
+
+### Modified
+- **`lib/nutrition.js`** — `calculateWaterTarget()` now returns 12 instead of `(weightLbs * 0.5) / 8`
+
+---
+
+## 65. Nutrition Page — Estimates Disclaimer
+
+Added a prominent notice below the calorie/protein cards clarifying that targets are estimates and users should consult Coach Al for precise numbers.
+
+### Modified
+- **`components/NutritionSummary.js`** — Added orange-themed disclaimer box with "Estimates Only" title between stats grid and Coach Al's Pillars section
+
+---
+
+## 64. "Burnout" → "Burnt Out" — Text Updates
+
+Changed "burnout" to "burnt out" across user-facing copy per Coach Al's request.
+
+### Modified
+- **`components/LandingPage.js`** — 4 instances updated (hero subtitle, transition box, FAQ, about section)
+- **`constants.js`** — Book chapter heading and intro text (2 instances)
+
+---
+
+## 63. LandingPage Avatar Circles Fix
+
+Replaced broken `<Image>` avatars (external URLs failing on RN Web) with colored `<View>` circles matching the WelcomeScreen pattern.
+
+### Modified
+- **`components/LandingPage.js`** — Swapped `Image` elements with `View` circles using `colors.gray[400/500/600]`, renamed `avatarImage` style to `avatarCircle`
+
+---
+
 # Session Log — Mar 5, 2026
 
 ## 62. Sleep Scoring — Coach Al's Scale

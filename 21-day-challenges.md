@@ -193,16 +193,16 @@ Complete all 4 tasks + unlock your rewards!
 
 ### Phase 2 (Days 6-10) - 2 Tasks
 - [ ] **Morning Light** - Get 10 min of natural sunlight within 1 hour of waking
-- [ ] **Declutter Zone** - Spend 5 min tidying one area of your space
+- [ ] **Declutter Zone** - Spend 5 min tidying one area in your living space
 
 ### Phase 3 (Days 11-15) - 3 Tasks
 - [ ] **Morning Light** - Get 10 min of natural sunlight within 1 hour of waking
-- [ ] **Declutter Zone** - Spend 5 min tidying one area of your space
+- [ ] **Declutter Zone** - Spend 5 min tidying one area in your living space
 - [ ] **Nature Time** - Spend 20+ minutes in nature (park, garden, trail)
 
 ### Phase 4 (Days 16-20) - 4 Tasks
 - [ ] **Morning Light** - Get 10 min of natural sunlight within 1 hour of waking
-- [ ] **Declutter Zone** - Spend 5 min tidying one area of your space
+- [ ] **Declutter Zone** - Spend 5 min tidying one area in your living space
 - [ ] **Nature Time** - Spend 20+ minutes in nature
 - [ ] **Digital Detox** - 1 hour phone-free time in the evening
 

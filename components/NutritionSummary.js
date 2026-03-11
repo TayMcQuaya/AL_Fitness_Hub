@@ -89,6 +89,16 @@ export const NutritionSummary = ({ onNavigate, weight, age, sex, goals, experien
           ))}
         </View>
 
+        <View style={styles.disclaimerBox}>
+          <MaterialIcons name="info" size={20} color={colors.secondary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.disclaimerTitle}>Estimates Only</Text>
+            <Text style={styles.disclaimerText}>
+              These numbers are general estimates based on your profile, not exact. For precise targets tailored to your body and goals, work with Coach Al one-on-one.
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
             <MaterialIcons name="psychology" size={20} color={colors.primary} />
@@ -140,6 +150,7 @@ export const NutritionSummary = ({ onNavigate, weight, age, sex, goals, experien
             </View>
           </View>
         </View>
+
       </ScrollView>
 
       <BottomNav currentScreen="NUTRITION_SUMMARY" onNavigate={onNavigate} />
@@ -177,18 +188,18 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 140,
+    paddingBottom: 100,
   },
   goalBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: `${colors.primary}15`,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderRadius: 20,
     alignSelf: 'flex-start',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   goalBadgeText: {
     fontSize: 10,
@@ -205,13 +216,13 @@ const makeStyles = (colors) => StyleSheet.create({
   pageSubtitle: {
     fontSize: 14,
     color: colors.gray[500],
-    marginTop: 4,
-    marginBottom: 24,
+    marginTop: 2,
+    marginBottom: 12,
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
+    gap: 12,
+    marginBottom: 12,
   },
   statCard: {
     flex: 1,
@@ -219,13 +230,13 @@ const makeStyles = (colors) => StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.divider,
-    padding: 20,
+    padding: 14,
   },
   statHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   statIconContainer: {
     width: 32,
@@ -328,5 +339,27 @@ const makeStyles = (colors) => StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginTop: 8,
+  },
+  disclaimerBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: `${colors.secondary}12`,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: `${colors.secondary}30`,
+    marginBottom: 16,
+  },
+  disclaimerTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.secondary,
+    marginBottom: 2,
+  },
+  disclaimerText: {
+    fontSize: 13,
+    color: colors.gray[400],
+    lineHeight: 18,
   },
 });

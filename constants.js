@@ -281,7 +281,7 @@ export const TWENTY_ONE_DAY_CHALLENGES = {
       {
         id: "declutter_zone",
         name: "Declutter Zone",
-        description: "Spend 5 min tidying one area of your space",
+        description: "Spend 5 min tidying one area in your living space",
         unlockedDay: 6,
         phase: 2,
       },
