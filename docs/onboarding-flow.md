@@ -31,12 +31,18 @@ When a user enters their name and email in `IntakePersonal` and taps Continue:
 4. **If found with `intakeCompleted: true`:**
    - Local userId is swapped back to the original (one doc per email)
    - The orphaned new userId doc is deleted from Firestore
-   - All profile data is restored to AsyncStorage and React state
-   - The user's new name is preserved (overwrites the old name)
-   - Navigation skips to Dashboard (if paid) or Payment Gate (if unpaid)
+   - "Welcome Back!" modal appears — directs user to enter their access code
+   - Profile data is stored in `pendingRestoreRef` but **NOT restored yet**
+   - User is sent to Payment Gate to enter their access code
+   - Only after code validates does `handleCodeValidated` restore profile data to AsyncStorage and React state
+   - The results phase (pillar scores reveal) is skipped — returning users go straight to Dashboard via `isReturningUser` prop on PaymentGate
 5. **If not found, incomplete, or offline:**
    - Normal onboarding continues from Demographics
    - Cloud sync fires to the new userId doc
+
+### Security: Code-First Restore
+
+Profile data is never restored until the user proves ownership via their access code. This prevents an attacker from guessing someone's email and gaining access to their account. The access code effectively acts as a password.
 
 ### Why This Exists
 

@@ -23,6 +23,7 @@ export const PaymentGate = ({
   userEmail,
   onCodeValidated,
   validateCode,
+  isReturningUser,
 }) => {
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -90,6 +91,10 @@ export const PaymentGate = ({
     setLoading(false);
 
     if (result.success) {
+      if (isReturningUser) {
+        onCodeValidated(normalizedCode);
+        return;
+      }
       setValidatedCode(normalizedCode);
       setPhase("results");
     } else {

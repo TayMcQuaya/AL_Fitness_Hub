@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SafeAreaView, StatusBar, View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { SafeAreaView, StatusBar, View, Text, ActivityIndicator, StyleSheet, Modal, TouchableOpacity } from "react-native";
 
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { IntakePersonal } from "./components/IntakePersonal";
@@ -140,6 +140,8 @@ export default function App() {
   // Intake form data (persisted across back navigation)
   const [intakeData, setIntakeData] = useState({});
   const [isCheckingAccount, setIsCheckingAccount] = useState(false);
+  const [showReturningUserModal, setShowReturningUserModal] = useState(false);
+  const pendingRestoreRef = useRef(null);
 
   // Theme state
   const [isDark, setIsDark] = useState(true);
@@ -321,31 +323,15 @@ export default function App() {
             if (existing.id !== orphanId) {
               userIdRef.current = existing.id;
               await setUserId(existing.id);
-              // Delete the orphaned doc (nothing synced to it yet)
               deleteUserData(orphanId);
             }
 
-            // Restore profile data to AsyncStorage, then apply the new name
-            await restoreUserData(existing);
-            await saveName(name);
+            // Store data for restore AFTER code validation
+            pendingRestoreRef.current = { ...existing, name };
 
-            // Update local state from restored data
-            if (existing.age) setUserAge(existing.age);
-            if (existing.sex) setUserSex(existing.sex);
-            if (existing.weight) setUserWeight(existing.weight);
-            if (existing.goalWeight) setUserGoalWeight(existing.goalWeight);
-            if (existing.goals) setUserGoals(existing.goals);
-            if (existing.experience) setUserExperience(existing.experience);
-            if (existing.pillarScores) setPillarScores(existing.pillarScores);
-            if (existing.focusPillar) setFocusPillar(existing.focusPillar);
-            if (existing.paid) setIsPaid(true);
-
-            // Update lastActiveAt on the original doc
-            syncUserProfile(existing.id, { name });
-
-            // Navigate based on payment status
+            // Show returning user modal — don't restore data yet
             setIsCheckingAccount(false);
-            navigateTo(existing.paid ? "DASHBOARD" : "PAYMENT_GATE");
+            setShowReturningUserModal(true);
             return;
           }
         } finally {
@@ -610,6 +596,25 @@ export default function App() {
     setIsPaid(true);
     try {
       await savePaidStatus(code);
+
+      // Restore returning user data after code validates
+      const pending = pendingRestoreRef.current;
+      if (pending) {
+        await restoreUserData(pending);
+        await saveName(pending.name);
+
+        if (pending.age) setUserAge(pending.age);
+        if (pending.sex) setUserSex(pending.sex);
+        if (pending.weight) setUserWeight(pending.weight);
+        if (pending.goalWeight) setUserGoalWeight(pending.goalWeight);
+        if (pending.goals) setUserGoals(pending.goals);
+        if (pending.experience) setUserExperience(pending.experience);
+        if (pending.pillarScores) setPillarScores(pending.pillarScores);
+        if (pending.focusPillar) setFocusPillar(pending.focusPillar);
+
+        syncUserProfile(userIdRef.current, { name: pending.name });
+        pendingRestoreRef.current = null;
+      }
     } catch (error) {
       console.log("Error saving paid status:", error);
     }
@@ -850,6 +855,7 @@ export default function App() {
             userEmail={userEmail}
             onCodeValidated={handleCodeValidated}
             validateCode={handleValidateCode}
+            isReturningUser={pendingRestoreRef.current != null}
           />
         );
       case "DASHBOARD":
@@ -995,6 +1001,33 @@ export default function App() {
             </View>
           </View>
         )}
+        <Modal
+          visible={showReturningUserModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => {}}
+        >
+          <View style={overlayStyles.container}>
+            <View style={overlayStyles.modalBox}>
+              <Text style={overlayStyles.modalTitle}>Welcome Back!</Text>
+              <Text style={overlayStyles.modalBody}>
+                An account with this email already exists. Please enter your access code to continue.
+                {"\n\n"}
+                If you've lost your code, reach out to Coach Al using the same email you registered with.
+              </Text>
+              <TouchableOpacity
+                style={overlayStyles.modalButton}
+                onPress={() => {
+                  setShowReturningUserModal(false);
+                  navigateTo("PAYMENT_GATE");
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={overlayStyles.modalButtonText}>Enter Access Code</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </ThemeProvider>
   );
@@ -1019,5 +1052,38 @@ const overlayStyles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  modalBox: {
+    backgroundColor: "#1a1a1a",
+    borderRadius: 16,
+    padding: 28,
+    marginHorizontal: 24,
+    maxWidth: 360,
+    width: "100%",
+  },
+  modalTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalBody: {
+    color: "#cccccc",
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: "#13ec13",
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

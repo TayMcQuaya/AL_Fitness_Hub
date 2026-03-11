@@ -1,5 +1,35 @@
 # Session Log — Mar 11, 2026
 
+## 74. Skip Results Phase for Returning Users
+
+Returning users who validate their access code now skip the pillar score results page and go straight to Dashboard. Previously they'd see a results page with default scores (all 5s) since data hadn't been restored yet.
+
+### Changes
+- **`components/PaymentGate.js`** — Added `isReturningUser` prop. When `true`, successful code validation calls `onCodeValidated` directly instead of showing the results phase.
+- **`App.js`** — Passes `isReturningUser={pendingRestoreRef.current != null}` to PaymentGate.
+
+---
+
+## 73. Returning User Requires Access Code Before Restore
+
+Fixed security issue where someone could guess an existing email and skip straight to the Dashboard without an access code. Now returning users must validate their access code before any profile data is restored.
+
+### Flow
+1. User enters email → Firestore finds existing account
+2. "Welcome Back!" modal appears → directs user to enter access code
+3. Code validates → profile data is restored → Dashboard
+4. Without valid code → no data restored, no access
+
+### Changes
+- **`App.js`** — `handleSaveName` no longer restores data or sets `isPaid` on match. Instead stores pending data in `pendingRestoreRef` and shows a modal. `handleCodeValidated` now checks for pending restore data and applies it after successful code validation. Added `showReturningUserModal` state and modal UI.
+
+### Security
+- No profile data leaks until code is validated
+- Access code acts as proof of ownership
+- Attacker guessing an email only sees "account exists" modal, can't proceed without the code
+
+---
+
 ## 72. Reset Success Confirmation Modal
 
 Added a success modal after the soft reset completes, confirming to the user that their progress was reset while their profile and payment info are intact.
