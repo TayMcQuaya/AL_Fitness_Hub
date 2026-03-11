@@ -137,7 +137,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What if I've tried other wellness apps?",
-    a: "Coach Al focuses on fundamentals, not fads. The 7 Pillars approach addresses root causes of burnout, not just symptoms.",
+    a: "Coach Al focuses on fundamentals, not fads. The 7 Pillars approach addresses root causes of being burnt out, not just symptoms.",
   },
   {
     q: "Do I need any equipment?",
@@ -194,7 +194,7 @@ export const LandingPage = ({ onGetStarted }) => {
           <Text style={styles.heroTitle}>Stop Running{"\n"}on Empty</Text>
 
           <Text style={styles.heroSubtitle}>
-            From burnout to breakthrough in 21 days. Master the 7 Pillars of
+            From burnt out to breakthrough in 21 days. Master the 7 Pillars of
             Health with Coach Al's proven system for busy parents.
           </Text>
 
@@ -213,13 +213,17 @@ export const LandingPage = ({ onGetStarted }) => {
 
           <View style={styles.socialProof}>
             <View style={styles.avatarStack}>
-              {[1, 2, 3, 4].map((i) => (
-                <Image
+              {[
+                { bg: colors.gray[400] },
+                { bg: colors.gray[500] },
+                { bg: colors.gray[600] },
+                { bg: colors.gray[400] },
+              ].map((a, i) => (
+                <View
                   key={i}
-                  source={{ uri: `https://picsum.photos/100?avatar=${i}` }}
                   style={[
-                    styles.avatarImage,
-                    { marginLeft: i > 1 ? -12 : 0, zIndex: 5 - i },
+                    styles.avatarCircle,
+                    { backgroundColor: a.bg, marginLeft: i > 0 ? -10 : 0, zIndex: 5 - i },
                   ]}
                 />
               ))}
@@ -282,7 +286,7 @@ export const LandingPage = ({ onGetStarted }) => {
           <View style={styles.transitionBox}>
             <MaterialIcons name="lightbulb" size={24} color={colors.primary} />
             <Text style={styles.transitionText}>
-              Burnout isn't about working too hard.{"\n"}
+              Being burnt out isn't about working too hard.{"\n"}
               <Text style={styles.transitionHighlight}>
                 It's about neglecting the fundamentals.
               </Text>
@@ -484,7 +488,7 @@ export const LandingPage = ({ onGetStarted }) => {
               <Text style={styles.aboutName}>Al Cummings</Text>
               <Text style={styles.aboutBio}>
                 Author of "Burnt Out and Ready to Feel Great" and wellness coach
-                to thousands of busy professionals. After experiencing burnout
+                to thousands of busy professionals. After being burnt out
                 firsthand, Al developed the 7 Pillars system that has helped
                 people reclaim their energy and vitality.
               </Text>
@@ -728,13 +732,12 @@ const makeStyles = (colors, width) => {
   avatarStack: {
     flexDirection: "row",
   },
-  avatarImage: {
+  avatarCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
     borderWidth: 2,
     borderColor: colors.background,
-    backgroundColor: colors.gray[600],
   },
   socialProofText: {
     color: colors.gray[400],

@@ -473,9 +473,9 @@ export const BOOK_CHAPTERS = [
     readTime: 5,
     sections: [
       {
-        heading: "The Burnout Epidemic",
+        heading: "The Burnt Out Epidemic",
         content:
-          "You're exhausted. Not just tired—deeply, fundamentally depleted. You've tried everything: more coffee, productivity hacks, weekend catch-up sleep. Nothing sticks. Welcome to burnout, the silent epidemic affecting millions of busy professionals and parents.\n\nBut here's what nobody tells you: burnout isn't about working too hard. It's about neglecting the fundamental pillars that keep your body and mind functioning optimally. This book will show you a different path.",
+          "You're exhausted. Not just tired—deeply, fundamentally depleted. You've tried everything: more coffee, productivity hacks, weekend catch-up sleep. Nothing sticks. Welcome to being burnt out, the silent epidemic affecting millions of busy professionals and parents.\n\nBut here's what nobody tells you: being burnt out isn't about working too hard. It's about neglecting the fundamental pillars that keep your body and mind functioning optimally. This book will show you a different path.",
       },
       {
         heading: "The 7 Pillars Philosophy",
