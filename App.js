@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SafeAreaView, StatusBar } from "react-native";
+import { SafeAreaView, StatusBar, View, Text, ActivityIndicator, StyleSheet } from "react-native";
 
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { IntakePersonal } from "./components/IntakePersonal";
@@ -50,9 +50,12 @@ import {
   autoAdvanceChallengeDay,
   acknowledgeMilestones,
   clearAllData,
+  softResetProgress,
   saveAllData,
   savePaidStatus,
   saveTheme,
+  restoreUserData,
+  setUserId,
 } from "./lib/storage";
 
 import {
@@ -66,6 +69,8 @@ import {
   validateAccessCode,
   checkPaidStatus,
   deleteUserData,
+  syncUserReset,
+  findUserByEmail,
 } from "./lib/sync";
 
 const DEFAULT_SCORES = {
@@ -134,6 +139,7 @@ export default function App() {
 
   // Intake form data (persisted across back navigation)
   const [intakeData, setIntakeData] = useState({});
+  const [isCheckingAccount, setIsCheckingAccount] = useState(false);
 
   // Theme state
   const [isDark, setIsDark] = useState(true);
@@ -304,12 +310,56 @@ export default function App() {
       await saveName(name);
       if (email) await saveEmail(email);
 
-      // Fire-and-forget cloud sync
+      // Check if returning user exists in Firestore before syncing
+      if (email) {
+        setIsCheckingAccount(true);
+        try {
+          const existing = await findUserByEmail(email);
+          if (existing && existing.intakeCompleted) {
+            // Reuse the original userId — one Firestore doc per email
+            const orphanId = userIdRef.current;
+            if (existing.id !== orphanId) {
+              userIdRef.current = existing.id;
+              await setUserId(existing.id);
+              // Delete the orphaned doc (nothing synced to it yet)
+              deleteUserData(orphanId);
+            }
+
+            // Restore profile data to AsyncStorage, then apply the new name
+            await restoreUserData(existing);
+            await saveName(name);
+
+            // Update local state from restored data
+            if (existing.age) setUserAge(existing.age);
+            if (existing.sex) setUserSex(existing.sex);
+            if (existing.weight) setUserWeight(existing.weight);
+            if (existing.goalWeight) setUserGoalWeight(existing.goalWeight);
+            if (existing.goals) setUserGoals(existing.goals);
+            if (existing.experience) setUserExperience(existing.experience);
+            if (existing.pillarScores) setPillarScores(existing.pillarScores);
+            if (existing.focusPillar) setFocusPillar(existing.focusPillar);
+            if (existing.paid) setIsPaid(true);
+
+            // Update lastActiveAt on the original doc
+            syncUserProfile(existing.id, { name });
+
+            // Navigate based on payment status
+            setIsCheckingAccount(false);
+            navigateTo(existing.paid ? "DASHBOARD" : "PAYMENT_GATE");
+            return;
+          }
+        } finally {
+          setIsCheckingAccount(false);
+        }
+      }
+
+      // No existing user found — sync to the new userId
       if (userIdRef.current) {
         syncUserProfile(userIdRef.current, { name, email: email || null });
       }
     } catch (error) {
       console.log("Error saving name:", error);
+      setIsCheckingAccount(false);
     }
     navigateTo("INTAKE_DEMOGRAPHICS");
   };
@@ -667,37 +717,26 @@ export default function App() {
   const handleReset = async () => {
     const userId = userIdRef.current;
     try {
-      await clearAllData();
+      await softResetProgress();
     } catch (error) {
-      console.log("Error clearing storage:", error);
+      console.log("Error resetting progress:", error);
     }
     if (userId) {
-      deleteUserData(userId);
+      syncUserReset(userId);
     }
-    setCurrentScreen("LANDING");
-    setIsPaid(false);
-    setUserEmail(null);
-    setSelectedWorkout(null);
-    setSelectedMeditation(null);
+    // Reset progress state only — keep profile, payment, userId
     setIsLoggedToday(false);
     setStreak(0);
     setTotalDaysLogged(0);
     setLastLogDate(null);
     setLogHistory({});
-    setPillarScores(DEFAULT_SCORES);
-    setUserName("");
-    setUserAge(null);
-    setUserSex(null);
-    setUserWeight(null);
-    setUserGoalWeight(null);
-    setUserGoals(null);
-    setUserExperience(null);
-    setFocusPillar("breathing");
+    setSelectedWorkout(null);
+    setSelectedMeditation(null);
     setSelectedChallengePillar(null);
     setSelectedChapterId(null);
     setReadChapters({});
     setChallengeStates(buildInitialChallengeStates());
-    userIdRef.current = null;
+    navigateTo("DASHBOARD");
   };
 
   const renderScreen = () => {
@@ -948,7 +987,37 @@ export default function App() {
           backgroundColor={themeColors.background}
         />
         {renderScreen()}
+        {isCheckingAccount && (
+          <View style={overlayStyles.container}>
+            <View style={overlayStyles.box}>
+              <ActivityIndicator size="large" color="#13ec13" />
+              <Text style={overlayStyles.text}>Setting up your profile...</Text>
+            </View>
+          </View>
+        )}
       </SafeAreaView>
     </ThemeProvider>
   );
 }
+
+const overlayStyles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+  box: {
+    backgroundColor: "#1a1a1a",
+    borderRadius: 16,
+    padding: 32,
+    alignItems: "center",
+    gap: 16,
+  },
+  text: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

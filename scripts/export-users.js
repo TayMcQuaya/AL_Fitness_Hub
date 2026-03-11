@@ -79,6 +79,8 @@ async function main() {
       "Focus Pillar": d.focusPillar ? d.focusPillar.charAt(0).toUpperCase() + d.focusPillar.slice(1) : "",
       "Streak": d.currentStreak ?? "",
       "Days Logged": d.totalDaysLogged ?? "",
+      "Resets": d.resetCount || 0,
+      "Last Reset": formatTimestamp(d.lastResetAt),
     });
   }
 
@@ -105,6 +107,8 @@ async function main() {
     { wch: 14 },  // Focus Pillar
     { wch: 8 },   // Streak
     { wch: 12 },  // Days Logged
+    { wch: 8 },   // Resets
+    { wch: 14 },  // Last Reset
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Users");

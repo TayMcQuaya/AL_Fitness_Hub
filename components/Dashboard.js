@@ -143,6 +143,7 @@ export const Dashboard = ({
   const [confettiKey, setConfettiKey] = useState(0);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showResetSuccess, setShowResetSuccess] = useState(false);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
@@ -835,9 +836,10 @@ export const Dashboard = ({
             </Text>
             <TouchableOpacity
               style={styles.resetModalConfirm}
-              onPress={() => {
+              onPress={async () => {
                 setShowResetModal(false);
-                onReset();
+                await onReset();
+                setShowResetSuccess(true);
               }}
               activeOpacity={0.8}
             >
@@ -849,6 +851,33 @@ export const Dashboard = ({
               activeOpacity={0.8}
             >
               <Text style={styles.resetModalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Reset Success Modal */}
+      <Modal
+        visible={showResetSuccess}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowResetSuccess(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="check-circle" size={32} color={colors.primary} />
+              <Text style={styles.modalTitle}>Progress Reset</Text>
+            </View>
+            <Text style={styles.resetModalText}>
+              Your progress has been reset. All streaks, challenges, and logs are starting fresh.{"\n\n"}Your profile and payment info are still intact.
+            </Text>
+            <TouchableOpacity
+              style={[styles.resetModalConfirm, { backgroundColor: colors.primary }]}
+              onPress={() => setShowResetSuccess(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.resetModalConfirmText}>Got It</Text>
             </TouchableOpacity>
           </View>
         </View>

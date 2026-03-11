@@ -1,5 +1,62 @@
 # Session Log — Mar 11, 2026
 
+## 72. Reset Success Confirmation Modal
+
+Added a success modal after the soft reset completes, confirming to the user that their progress was reset while their profile and payment info are intact.
+
+### Changes
+- **`components/Dashboard.js`** — Added `showResetSuccess` state and a new modal with green checkmark icon. Shows after `onReset()` resolves. Single "Got It" dismiss button.
+
+---
+
+## 71. Loading Overlay for Account Check
+
+Added a loading overlay ("Setting up your profile...") that shows while Firestore is queried during onboarding. Prevents the UI from appearing frozen while the returning-user check runs.
+
+### Changes
+- **`App.js`** — Added `isCheckingAccount` state, `ActivityIndicator` overlay rendered on top of current screen. Uses neutral copy ("Setting up your profile...") that works for both new and returning users.
+
+---
+
+## 70. Restore Returning User from Firestore (Single Account per Email)
+
+If a user clears localStorage or reinstalls, they no longer have to redo the entire questionnaire. When they enter their email in IntakePersonal, the app checks Firestore for an existing profile, restores it, and reuses the original userId — preventing duplicate accounts.
+
+### Flow
+- Email found + intake complete + paid → restore data → Dashboard
+- Email found + intake complete + unpaid → restore data → Payment Gate
+- Email not found / intake incomplete / offline → continue normal onboarding
+
+### Changes
+- **`lib/sync.js`** — Added `findUserByEmail(email)` query function. Searches `users` collection by email (`limit(1)`), returns `null` if offline or not found. Added `query`, `where`, `limit` imports.
+- **`lib/storage.js`** — Added `restoreUserData(data)` to bulk-save a Firestore profile to AsyncStorage via `multiSet`. Added `setUserId(id)` to overwrite the local userId.
+- **`App.js`** — Updated `handleSaveName` to check Firestore **before** any cloud sync. If returning user found: swaps local userId back to the original, deletes the orphaned new doc, restores profile to AsyncStorage + React state, re-saves the new name (so name updates are respected), then navigates based on payment status. Cloud sync to a new doc only fires if no existing user is found.
+
+### Dedup behavior
+- One Firestore doc per email — returning user reuses original userId
+- Orphaned new userId doc is deleted (fire-and-forget)
+- If user enters a different name, the new name wins everywhere (AsyncStorage, state, Firestore)
+
+### Not restored
+- Challenge progress, streaks, and daily logs — returning users start fresh on challenges (correct for refund tracking).
+
+---
+
+## 69. Reset Tracking for Refund Eligibility
+
+Added Firestore tracking when a user resets their progress, so Coach Al can verify 21-day challenge eligibility (no resets, no skipped days).
+
+### Changes
+- **`lib/sync.js`** — Added `syncUserReset()` that records `resetCount`, `resetHistory` (array of timestamps), and `lastResetAt` on the user doc. Preserves all existing Firestore data instead of deleting it.
+- **`App.js`** — `handleReset` now calls `syncUserReset(userId)` instead of `deleteUserData(userId)`, keeping user history intact for review.
+- **`scripts/export-users.js`** — Added "Resets" and "Last Reset" columns to the spreadsheet export so Al can check eligibility at a glance.
+
+### How Al checks eligibility
+- Export users → check **Resets** column (must be 0)
+- Check **Days Logged** column (must be 21)
+
+---
+
 ## 68. Task Text Review Doc for Coach Al
 
 Generated a Word document (`exports/task-text-review.docx`) containing all 28 challenge tasks across 7 pillars for Coach Al to review and suggest text changes. Generator script at `scripts/generate-task-review.js`.
