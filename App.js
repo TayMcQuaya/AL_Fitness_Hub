@@ -27,7 +27,7 @@ import { MeditationList } from "./components/MeditationList";
 import { MeditationPlayer } from "./components/MeditationPlayer";
 import { darkColors, lightColors } from "./styles/theme";
 import { ThemeProvider } from "./styles/ThemeContext";
-import { TWENTY_ONE_DAY_CHALLENGES } from "./constants";
+import { TWENTY_ONE_DAY_CHALLENGES, PILLARS } from "./constants";
 
 import {
   migrateIfNeeded,
@@ -387,11 +387,13 @@ export default function App() {
   // --- Assessment Finalization ---
 
   const finalizeAssessment = async () => {
-    const entries = Object.entries(pillarScores);
-    const weakest = entries.reduce((prev, curr) =>
-      curr[1] < prev[1] ? curr : prev,
-    );
-    const weakestPillar = weakest[0];
+    // Find weakest pillar; on tie, pick the one with lower PILLARS index (higher priority)
+    const pillarOrder = PILLARS.map((p) => p.id);
+    const weakestPillar = pillarOrder.reduce((weakestId, id) => {
+      const score = pillarScores[id] ?? 10;
+      const weakestScore = pillarScores[weakestId] ?? 10;
+      return score < weakestScore ? id : weakestId;
+    }, pillarOrder[0]);
     setFocusPillar(weakestPillar);
 
     try {

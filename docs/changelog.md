@@ -1,5 +1,17 @@
 # Session Log — Mar 11, 2026
 
+## 77. Weakest Pillar Tiebreaker — Priority by Pillar Order
+
+When multiple pillars tie for the lowest score, the app now picks the one with the lowest index in the PILLARS array (higher priority). Previously the winner was arbitrary (depended on JS object key order).
+
+### Priority order (on tie)
+1. Breathing → 2. Sleep → 3. Hydration → 4. Nutrition → 5. Movement → 6. Environment → 7. Mindfulness
+
+### Changes
+- **`App.js`** — `finalizeAssessment` now iterates through `PILLARS` array order instead of `Object.entries(pillarScores)`. Uses strict less-than (`<`) so the first pillar encountered at the lowest score wins. Added `PILLARS` import from constants.
+
+---
+
 ## 76. Safety Notice — Larger Fonts, Required Checkbox, Firestore Sync
 
 Improved the Safety Notice screen for mobile readability and enforced the disclaimer checkbox.
