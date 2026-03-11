@@ -119,8 +119,12 @@ export const BookScreen = ({
               >
                 {isRead ? (
                   <MaterialIcons name="check" size={18} color={colors.textInverse} />
+                ) : chapter.id === "intro" ? (
+                  <MaterialIcons name="menu-book" size={18} color={colors.primary} />
+                ) : chapter.id === "conclusion" ? (
+                  <MaterialIcons name="emoji-events" size={18} color={colors.primary} />
                 ) : (
-                  <Text style={styles.chapterNumberText}>{index + 1}</Text>
+                  <Text style={styles.chapterNumberText}>{index}</Text>
                 )}
               </View>
               <View style={styles.chapterInfo}>

@@ -1,4 +1,34 @@
-# Session Log — Mar 11, 2026
+# Session Log — Mar 12, 2026
+
+## 80. Replace Book Content with Real DOCX Manuscript
+
+Replaced all placeholder book content in `BOOK_CHAPTERS` with the actual text from "Burnt Out and Ready to Feel Great by Al Cummings" DOCX file. Extracted introduction and all 11 chapters plus conclusion. Excluded: table of contents, images, weekly tracking worksheets/templates, nutrition reference tables.
+
+### Structure (13 entries, was 9)
+| ID | Title |
+|----|-------|
+| intro | Introduction: The Skinny Kid Who Ate Everything and Absorbed Nothing |
+| ch1 | When Your Lifestyle Choices Tell a Story |
+| ch2 | The Athletic Paradox |
+| ch3 | The Day I Learned to Breathe |
+| ch4 | The 5-Hour Sleep Delusion |
+| ch5 | The Dehydration Decades |
+| ch6 | Eating Everything, Absorbing Nothing |
+| ch7 | Movement Without Recovery |
+| ch8 | The Indoor Prison |
+| ch9 | The Anxious Achiever's Trap |
+| ch10 | Your 30-Day Foundation |
+| ch11 | The Tracking That Actually Works |
+| conclusion | The Life You're Actually Chasing |
+
+### Modified
+- **`constants.js`** — Complete rewrite of `BOOK_CHAPTERS` array
+
+### Notes
+- Old chapter IDs (breathing, sleep, etc.) replaced with ch1-ch11. Existing users' `readChapters` data will reset (correct behavior since content is entirely new).
+- Each chapter split into 4-6 sections with headings matching the book's natural section breaks.
+
+---
 
 ## 79. Fix Book Chapter Next/Previous Navigation
 

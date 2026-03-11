@@ -69,17 +69,17 @@ export const ChapterView = ({ chapterId, onNavigate, onMarkRead, isRead }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => onNavigate("BOOK")}
-        >
-          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => onNavigate("BOOK")}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <View style={{ width: 40 }} />
+        </View>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerChapter}>Chapter {chapterIndex + 1}</Text>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {chapter.title}
-          </Text>
+          <Text style={styles.headerChapter}>{chapter.title}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <TouchableOpacity style={styles.bookmarkButton} onPress={toggleTheme}>
@@ -249,8 +249,8 @@ const makeStyles = (colors) => StyleSheet.create({
     paddingHorizontal: 12,
   },
   headerChapter: {
-    fontSize: 10,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
     color: colors.primary,
     textTransform: "uppercase",
     letterSpacing: 1,
