@@ -1,5 +1,14 @@
 # Session Log — Mar 11, 2026
 
+## 79. Fix Book Chapter Next/Previous Navigation
+
+Chapter next/previous buttons were refreshing the same chapter instead of advancing. Root cause: `onNavigate("CHAPTER_VIEW", id)` passed the chapter ID as a second argument, but `navigateTo` only accepted the screen name and ignored it — so `selectedChapterId` never updated.
+
+### Fix
+- **`App.js`** — ChapterView's `onNavigate` prop now intercepts `CHAPTER_VIEW` calls and updates `selectedChapterId` with the new chapter ID before re-rendering.
+
+---
+
 ## 78. Disable DEV_MODE for Production
 
 Set `DEV_MODE = false` in Dashboard and ChallengeDetail. Dev panels (phase jump, simulate day, reset buttons) are hidden from users.

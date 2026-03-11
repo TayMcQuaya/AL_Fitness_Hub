@@ -953,7 +953,13 @@ export default function App() {
         return (
           <ChapterView
             chapterId={selectedChapterId}
-            onNavigate={navigateTo}
+            onNavigate={(screen, chapterId) => {
+              if (screen === "CHAPTER_VIEW" && chapterId) {
+                setSelectedChapterId(chapterId);
+              } else {
+                navigateTo(screen);
+              }
+            }}
             onMarkRead={handleMarkChapterRead}
             isRead={readChapters[selectedChapterId]}
           />
