@@ -1,5 +1,37 @@
 # Session Log — Mar 11, 2026
 
+## 76. Safety Notice — Larger Fonts, Required Checkbox, Firestore Sync
+
+Improved the Safety Notice screen for mobile readability and enforced the disclaimer checkbox.
+
+### Changes
+- **`components/SafetyNotice.js`** — Increased font sizes across the page: title (24→28), subtitle (14→16), coach name (14→16), coach message (12→14), disclaimer text (12→14), checkbox label (14→15), button text (14→16). Continue button is now disabled (grayed out, not tappable) until the checkbox is checked.
+- **`App.js`** — `finalizeAssessment` now syncs `disclaimerAcceptedAt` timestamp to the user's Firestore doc (fire-and-forget, alongside pillar scores).
+
+### Firestore
+The user doc now includes `disclaimerAcceptedAt` (ISO timestamp string) after completing onboarding. This provides a record that the user accepted the legal disclaimer.
+
+---
+
+## 75. Intake Questionnaire Updates (Steps 5 & 7)
+
+Three changes to the onboarding assessment:
+
+### Step 5 — Nutrition & Hydration
+- **Ultra-processed meals**: Added "None" option (score: 10) at the top. Switched from 2-column grid to full-width stacked rows (label left, description right) for balanced layout with 5 options.
+- **Water intake**: Added "12+" toggle button below the 12-glass grid. Tapping it sets water to 13 (above max), displays "12+" in the label. Hydration scoring already handles `>= 10` → score 10.
+
+### Step 7 — Mindfulness
+- **Mindfulness practice**: Changed from Yes/Sometimes binary to **days per week** (0, 1, 2, 3, 4+) selector — exact same design as cardio in Step 4 (segmented `freqContainer` row)
+- **Scoring updated**: 3+ days/wk = +3, 2 days = +2, 0–1 days = +1
+
+### Modified
+- **`components/IntakeNutrition.js`** — Added "None" to processedOptions, switched to `optionsList` stacked layout, added 12+ button with styles
+- **`components/IntakeMindfulness.js`** — Replaced yes/sometimes with 0–4+ day selector using `freqContainer`/`freqButton` styles matching IntakeMovement, updated scoring logic
+- **`docs/pillar-scoring.md`** — Updated Nutrition (added None→10), Hydration (added 12+), and Mindfulness (days-per-week scoring with new examples)
+
+---
+
 ## 74. Skip Results Phase for Returning Users
 
 Returning users who validate their access code now skip the pillar score results page and go straight to Dashboard. Previously they'd see a results page with default scores (all 5s) since data hadn't been restored yet.

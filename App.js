@@ -402,6 +402,9 @@ export default function App() {
       // Fire-and-forget cloud sync
       if (userIdRef.current) {
         syncPillarScoresCloud(userIdRef.current, pillarScores, weakestPillar);
+        syncUserProfile(userIdRef.current, {
+          disclaimerAcceptedAt: new Date().toISOString(),
+        });
       }
     } catch (error) {
       console.log("Error saving assessment:", error);

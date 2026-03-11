@@ -16,7 +16,7 @@ export const IntakeMindfulness = ({ onNext, onBack, initialData }) => {
 
   const [outdoors, setOutdoors] = useState(initialData?.outdoors ?? 1);
   const [stress, setStress] = useState(initialData?.stress ?? 5);
-  const [mindfulness, setMindfulness] = useState(initialData?.mindfulness ?? null);
+  const [mindfulness, setMindfulness] = useState(initialData?.mindfulness ?? 0);
 
   const [unsureOutdoors, setUnsureOutdoors] = useState(initialData?.unsureOutdoors ?? false);
   const [unsureStress, setUnsureStress] = useState(initialData?.unsureStress ?? false);
@@ -32,7 +32,8 @@ export const IntakeMindfulness = ({ onNext, onBack, initialData }) => {
       else score += 1;
     } else { score += 3; }
     if (!unsureMindfulness) {
-      if (mindfulness === 'yes') score += 3;
+      if (mindfulness >= 3) score += 3;
+      else if (mindfulness >= 2) score += 2;
       else score += 1;
     } else { score += 1; }
     return Math.max(1, Math.min(10, score));
@@ -145,7 +146,7 @@ export const IntakeMindfulness = ({ onNext, onBack, initialData }) => {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>Do you practice daily mindfulness?</Text>
+            <Text style={styles.sectionLabel}>Days per week you practice mindfulness</Text>
             <TouchableOpacity
               style={[styles.unsureToggle, unsureMindfulness && styles.unsureToggleActive]}
               onPress={() => setUnsureMindfulness(!unsureMindfulness)}
@@ -155,41 +156,35 @@ export const IntakeMindfulness = ({ onNext, onBack, initialData }) => {
               </Text>
             </TouchableOpacity>
           </View>
-          <View style={[styles.optionsRow, unsureMindfulness && styles.dimmed]}>
-            <TouchableOpacity
-              style={[
-                styles.optionButton,
-                !unsureMindfulness && mindfulness === 'yes' && styles.optionButtonActive,
-              ]}
-              onPress={() => !unsureMindfulness && setMindfulness('yes')}
-              activeOpacity={unsureMindfulness ? 1 : 0.7}
-            >
-              <Text
+          <View style={[styles.freqContainer, unsureMindfulness && styles.dimmed]}>
+            {[0, 1, 2, 3, '4+'].map((n, i) => (
+              <TouchableOpacity
+                key={i}
                 style={[
-                  styles.optionText,
-                  !unsureMindfulness && mindfulness === 'yes' && styles.optionTextActive,
+                  styles.freqButton,
+                  !unsureMindfulness && mindfulness === i && styles.freqButtonActive,
                 ]}
+                onPress={() => !unsureMindfulness && setMindfulness(i)}
+                activeOpacity={unsureMindfulness ? 1 : 0.7}
               >
-                Yes
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.optionButton,
-                !unsureMindfulness && mindfulness === 'sometimes' && styles.optionButtonActive,
-              ]}
-              onPress={() => !unsureMindfulness && setMindfulness('sometimes')}
-              activeOpacity={unsureMindfulness ? 1 : 0.7}
-            >
-              <Text
-                style={[
-                  styles.optionText,
-                  !unsureMindfulness && mindfulness === 'sometimes' && styles.optionTextActive,
-                ]}
-              >
-                Sometimes
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.freqValue,
+                    !unsureMindfulness && mindfulness === i && styles.freqValueActive,
+                  ]}
+                >
+                  {n}
+                </Text>
+                <Text
+                  style={[
+                    styles.freqLabel,
+                    !unsureMindfulness && mindfulness === i && styles.freqLabelActive,
+                  ]}
+                >
+                  Days
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -367,6 +362,41 @@ const makeStyles = (colors) => StyleSheet.create({
   sliderLabelText: {
     fontSize: 11,
     color: colors.gray[500],
+  },
+  freqContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  freqButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  freqButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  freqValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.gray[500],
+  },
+  freqValueActive: {
+    color: colors.textInverse,
+  },
+  freqLabel: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: colors.gray[500],
+    textTransform: 'uppercase',
+  },
+  freqLabelActive: {
+    color: colors.textInverse,
   },
   footer: {
     padding: 24,

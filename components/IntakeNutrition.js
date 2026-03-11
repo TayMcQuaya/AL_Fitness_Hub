@@ -17,6 +17,7 @@ export const IntakeNutrition = ({ onNext, onBack, initialData }) => {
   const [water, setWater] = useState(initialData?.water ?? 4);
 
   const calculateNutritionScore = () => {
+    if (processedFreq === 'None') return 10;
     if (processedFreq === 'Rarely') return 9;
     if (processedFreq === 'Sometimes') return 6;
     if (processedFreq === 'Often') return 3;
@@ -33,6 +34,7 @@ export const IntakeNutrition = ({ onNext, onBack, initialData }) => {
   };
 
   const processedOptions = [
+    { value: 'None', label: 'None', desc: 'None at all' },
     { value: 'Rarely', label: 'Rarely', desc: 'Once per week' },
     { value: 'Sometimes', label: 'Sometimes', desc: 'Once or twice a week' },
     { value: 'Often', label: 'Often', desc: 'Every other day' },
@@ -62,7 +64,7 @@ export const IntakeNutrition = ({ onNext, onBack, initialData }) => {
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Ultra-processed meals/week</Text>
-          <View style={styles.optionsGrid}>
+          <View style={styles.optionsList}>
             {processedOptions.map((opt) => (
               <TouchableOpacity
                 key={opt.value}
@@ -111,7 +113,21 @@ export const IntakeNutrition = ({ onNext, onBack, initialData }) => {
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={styles.waterLabel}>{water} glasses per day</Text>
+            <TouchableOpacity
+              style={[
+                styles.twelvePlusButton,
+                water > 12 && styles.twelvePlusButtonActive,
+              ]}
+              onPress={() => setWater(water > 12 ? 12 : 13)}
+            >
+              <Text style={[
+                styles.twelvePlusText,
+                water > 12 && styles.twelvePlusTextActive,
+              ]}>12+</Text>
+            </TouchableOpacity>
+            <Text style={styles.waterLabel}>
+              {water > 12 ? '12+' : water} glasses per day
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -199,20 +215,19 @@ const makeStyles = (colors) => StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 16,
   },
-  optionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  optionsList: {
+    gap: 10,
   },
   optionButton: {
-    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 16,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: 'transparent',
-    alignItems: 'center',
   },
   optionButtonActive: {
     borderColor: colors.primary,
@@ -251,9 +266,31 @@ const makeStyles = (colors) => StyleSheet.create({
   waterDrop: {
     padding: 4,
   },
+  twelvePlusButton: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.divider,
+    alignSelf: 'center',
+  },
+  twelvePlusButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}15`,
+  },
+  twelvePlusText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.gray[500],
+  },
+  twelvePlusTextActive: {
+    color: colors.primary,
+  },
   waterLabel: {
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: 12,
     fontSize: 12,
     fontWeight: '700',
     color: colors.gray[500],

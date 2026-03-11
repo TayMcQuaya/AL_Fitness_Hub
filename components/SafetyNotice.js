@@ -96,12 +96,19 @@ export const SafetyNotice = ({ onNext, onBack }) => {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.button}
-          onPress={onNext}
+          style={[styles.button, !accepted && styles.buttonDisabled]}
+          onPress={() => accepted && onNext()}
+          disabled={!accepted}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>I Understand & Continue</Text>
-          <MaterialIcons name="arrow-forward" size={20} color={colors.textInverse} />
+          <Text style={[styles.buttonText, !accepted && styles.buttonTextDisabled]}>
+            I Understand & Continue
+          </Text>
+          <MaterialIcons
+            name="arrow-forward"
+            size={20}
+            color={accepted ? colors.textInverse : colors.gray[600]}
+          />
         </TouchableOpacity>
         <TouchableOpacity style={styles.backLink} onPress={onBack}>
           <Text style={styles.backLinkText}>Go Back & Change Selection</Text>
@@ -179,15 +186,16 @@ const makeStyles = (colors) => StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '900',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: colors.gray[500],
     textAlign: 'center',
+    lineHeight: 22,
   },
   coachCard: {
     width: '100%',
@@ -210,16 +218,16 @@ const makeStyles = (colors) => StyleSheet.create({
     flex: 1,
   },
   coachName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.text,
   },
   coachMessage: {
-    fontSize: 12,
+    fontSize: 14,
     color: colors.gray[400],
     fontStyle: 'italic',
-    marginTop: 4,
-    lineHeight: 18,
+    marginTop: 6,
+    lineHeight: 21,
   },
   disclaimerCard: {
     width: '100%',
@@ -244,9 +252,9 @@ const makeStyles = (colors) => StyleSheet.create({
     letterSpacing: 1,
   },
   disclaimerText: {
-    fontSize: 12,
+    fontSize: 14,
     color: colors.gray[400],
-    lineHeight: 18,
+    lineHeight: 21,
     marginBottom: 12,
   },
   checkboxRow: {
@@ -270,8 +278,9 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   checkboxLabel: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     color: colors.gray[400],
+    lineHeight: 21,
   },
   footer: {
     padding: 16,
@@ -289,10 +298,16 @@ const makeStyles = (colors) => StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
+  buttonDisabled: {
+    opacity: 0.4,
+  },
   buttonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.textInverse,
+  },
+  buttonTextDisabled: {
+    color: colors.gray[600],
   },
   backLink: {
     height: 48,

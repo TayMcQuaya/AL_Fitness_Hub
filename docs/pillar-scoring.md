@@ -90,12 +90,13 @@ Uses the raw slider value directly.
 
 ## 3. Hydration
 
-**Question asked:** How many glasses of water do you drink per day? (tap 1–12)
+**Question asked:** How many glasses of water do you drink per day? (tap 1–12, plus 12+ option)
 
 ```
 Glasses Per Day        Score
 ──────────────────────────────
-10 or more         →   10/10   Going Strong
+12+                →   10/10   Going Strong
+10–12 glasses      →   10/10   Going Strong
 8–9 glasses        →   8/10    On Track
 6–7 glasses        →   5/10    Building
 4–5 glasses        →   3/10    Needs Focus
@@ -107,13 +108,14 @@ Glasses Per Day        Score
 
 ## 4. Nutrition
 
-**Question asked:** How often do you eat ultra-processed meals? (Rarely / Sometimes / Often / Daily)
+**Question asked:** How often do you eat ultra-processed meals? (None / Rarely / Sometimes / Often / Daily)
 
 Less processed food = higher score:
 
 ```
 How Often              Score
 ──────────────────────────────
+None               →   10/10   Going Strong
 Rarely             →   9/10    Going Strong
 Sometimes          →   6/10    Building
 Often              →   3/10    Needs Focus
@@ -206,7 +208,7 @@ Hours Outdoors         Score
 
 **Questions asked:**
 1. Current stress level (slider: 1 = very stressed, 10 = very peaceful)
-2. Do you practice daily mindfulness? (Yes / Sometimes)
+2. Days per week you practice mindfulness (0, 1, 2, 3, 4+)
 
 Both factors contribute to the score. The stress slider uses a "peace scale" — higher number means more at peace, which means a higher score.
 
@@ -226,10 +228,11 @@ Stress Slider (1–10)        Points Earned
 ### Mindfulness Practice Points
 
 ```
-Practice Mindfulness?       Points Earned
+Days Per Week               Points Earned
 ──────────────────────────────────────────
-Yes                     →   +3
-Sometimes               →   +1
+3 or more (incl. 4+)   →   +3
+2 days                  →   +2
+0–1 days                →   +1
 "I don't know"          →   +1
 ```
 
@@ -239,10 +242,11 @@ Sometimes               →   +1
 
 | Person | Stress | Practice | Calculation | Score |
 |--------|--------|----------|-------------|-------|
-| Peaceful + daily practice | 9 | Yes | 1 + 6 + 3 | **10/10** |
-| Calm + sometimes | 7 | Sometimes | 1 + 5 + 1 | **7/10** |
-| Moderate stress + no practice | 5 | Sometimes | 1 + 3 + 1 | **5/10** |
-| Very stressed + sometimes | 2 | Sometimes | 1 + 1 + 1 | **3/10** |
+| Peaceful + 4+ days/wk | 9 | 4+ | 1 + 6 + 3 | **10/10** |
+| Calm + 3 days/wk | 7 | 3 | 1 + 5 + 3 | **9/10** |
+| Calm + 2 days/wk | 7 | 2 | 1 + 5 + 2 | **8/10** |
+| Moderate stress + 1 day/wk | 5 | 1 | 1 + 3 + 1 | **5/10** |
+| Very stressed + 0 days | 2 | 0 | 1 + 1 + 1 | **3/10** |
 | Very stressed + unsure | 1 | Unsure | 1 + 1 + 1 | **3/10** |
 
 ---
