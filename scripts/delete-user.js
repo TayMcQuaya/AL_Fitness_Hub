@@ -22,6 +22,7 @@ const {
   where,
   getDocs,
   deleteDoc,
+  updateDoc,
   doc,
 } = require("firebase/firestore");
 
@@ -103,7 +104,24 @@ async function main() {
   console.log("\nDeleting...\n");
 
   for (const userDoc of snap.docs) {
+    const userData = userDoc.data();
     const userRef = doc(db, "users", userDoc.id);
+
+    // Reset access code if one was used
+    if (userData.accessCode) {
+      try {
+        const codeRef = doc(db, "accessCodes", userData.accessCode);
+        await updateDoc(codeRef, {
+          used: false,
+          usedBy: null,
+          usedByEmail: null,
+          usedAt: null,
+        });
+        console.log(`  Reset access code: ${userData.accessCode}`);
+      } catch (e) {
+        console.log(`  Could not reset code ${userData.accessCode}: ${e.message}`);
+      }
+    }
 
     for (const sub of SUBCOLLECTIONS) {
       const deleted = await deleteSubcollection(db, userRef, sub);

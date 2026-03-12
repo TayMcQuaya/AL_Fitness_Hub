@@ -1,5 +1,11 @@
 # Session Log — Mar 12, 2026
 
+## 81. Delete-User Script Resets Access Codes
+
+Updated `scripts/delete-user.js` to automatically reset the user's access code back to "Available" when deleting a user (sets `used: false`, clears `usedBy`/`usedByEmail`/`usedAt` on the `accessCodes` document). Previously, deleting a user left their code permanently burned. Also ran a one-off cleanup to reset 7 orphaned codes from old test users.
+
+**Files modified:** `scripts/delete-user.js`
+
 ## 80. Replace Book Content with Real DOCX Manuscript
 
 Replaced all placeholder book content in `BOOK_CHAPTERS` with the actual text from "Burnt Out and Ready to Feel Great by Al Cummings" DOCX file. Extracted introduction and all 11 chapters plus conclusion. Excluded: table of contents, images, weekly tracking worksheets/templates, nutrition reference tables.
