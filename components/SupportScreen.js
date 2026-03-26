@@ -15,9 +15,9 @@ export const SupportScreen = ({ onNavigate }) => {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const legalItems = [
-    { n: 'Legal Disclaimer', i: 'gavel' },
-    { n: 'Privacy Policy', i: 'policy' },
-    { n: 'Help & Support', i: 'help' },
+    { n: 'Legal Disclaimer', i: 'gavel', screen: 'LEGAL_DISCLAIMER' },
+    { n: 'Privacy Policy', i: 'policy', screen: 'PRIVACY_POLICY' },
+    { n: 'Help & Support', i: 'help', screen: 'HELP_SUPPORT' },
   ];
 
   return (
@@ -47,7 +47,7 @@ export const SupportScreen = ({ onNavigate }) => {
 
         <View style={styles.legalCard}>
           {legalItems.map((item, i) => (
-            <TouchableOpacity key={i} style={styles.legalRow}>
+            <TouchableOpacity key={i} style={styles.legalRow} onPress={() => item.screen && onNavigate(item.screen)}>
               <View style={styles.legalLeft}>
                 <View style={styles.legalIconContainer}>
                   <MaterialIcons name={item.i} size={20} color={colors.gray[400]} />

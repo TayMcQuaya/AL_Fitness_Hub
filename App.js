@@ -17,6 +17,7 @@ import { WorkoutDetail } from "./components/WorkoutDetail";
 import { NutritionSummary } from "./components/NutritionSummary";
 import { PillarsOverview } from "./components/PillarsOverview";
 import { SupportScreen } from "./components/SupportScreen";
+import { LegalScreen } from "./components/LegalScreen";
 import { ChallengeProgress } from "./components/ChallengeProgress";
 import { ChallengeDetail } from "./components/ChallengeDetail";
 import { BookScreen } from "./components/BookScreen";
@@ -941,6 +942,12 @@ export default function App() {
         return <PillarsOverview onNavigate={navigateTo} pillarScores={pillarScores} />;
       case "SUPPORT":
         return <SupportScreen onNavigate={navigateTo} />;
+      case "LEGAL_DISCLAIMER":
+        return <LegalScreen type="LEGAL_DISCLAIMER" onNavigate={navigateTo} />;
+      case "PRIVACY_POLICY":
+        return <LegalScreen type="PRIVACY_POLICY" onNavigate={navigateTo} />;
+      case "HELP_SUPPORT":
+        return <LegalScreen type="HELP_SUPPORT" onNavigate={navigateTo} />;
       case "BOOK":
         return (
           <BookScreen
