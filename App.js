@@ -29,6 +29,7 @@ import { MeditationPlayer } from "./components/MeditationPlayer";
 import { darkColors, lightColors } from "./styles/theme";
 import { ThemeProvider } from "./styles/ThemeContext";
 import { TWENTY_ONE_DAY_CHALLENGES, PILLARS } from "./constants";
+import { initAnalytics, trackScreen } from "./lib/analytics";
 
 import {
   migrateIfNeeded,
@@ -151,6 +152,7 @@ export default function App() {
   const userIdRef = useRef(null);
 
   useEffect(() => {
+    initAnalytics();
     loadSavedData();
   }, []);
 
@@ -227,6 +229,7 @@ export default function App() {
 
   const navigateTo = async (screen) => {
     setCurrentScreen(screen);
+    trackScreen(screen);
     try {
       await saveScreen(screen);
     } catch (error) {
