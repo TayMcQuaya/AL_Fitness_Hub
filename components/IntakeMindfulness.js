@@ -135,11 +135,13 @@ export const IntakeMindfulness = ({ onNext, onBack, initialData }) => {
               minimumTrackTintColor={unsureStress ? colors.gray[600] : colors.primary}
               maximumTrackTintColor={colors.gray[700]}
               thumbTintColor={unsureStress ? colors.gray[600] : colors.primary}
+              thumbSize={44}
+              trackHeight={8}
               disabled={unsureStress}
             />
             <View style={styles.sliderLabels}>
-              <Text style={styles.sliderLabelText}>1 - very stressed</Text>
-              <Text style={styles.sliderLabelText}>10 - very peaceful</Text>
+              <Text style={styles.sliderLabelText}>1 - very peaceful</Text>
+              <Text style={styles.sliderLabelText}>10 - very stressed</Text>
             </View>
           </View>
         </View>
@@ -350,7 +352,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   slider: {
     width: '100%',
-    height: 40,
+    height: 50,
     marginTop: 16,
   },
   sliderLabels: {

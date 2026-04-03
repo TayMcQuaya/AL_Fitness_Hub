@@ -104,6 +104,8 @@ export const IntakeMovement = ({ onNext, onBack, initialData }) => {
               minimumTrackTintColor={unsureSteps ? colors.gray[600] : colors.primary}
               maximumTrackTintColor={colors.gray[700]}
               thumbTintColor={unsureSteps ? colors.gray[600] : colors.primary}
+              thumbSize={44}
+              trackHeight={8}
               disabled={unsureSteps}
             />
             <View style={styles.sliderLabels}>
@@ -331,7 +333,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   slider: {
     width: '100%',
-    height: 40,
+    height: 50,
     marginTop: 8,
   },
   sliderLabels: {

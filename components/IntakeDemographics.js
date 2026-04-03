@@ -21,6 +21,9 @@ export const IntakeDemographics = ({ onNext, onBack, initialData }) => {
 
   const sexOptions = ['Male', 'Female', 'Other'];
 
+  const numericOnly = (text) => text.replace(/[^0-9]/g, '');
+  const isComplete = age.trim() !== '' && sex !== null && weight.trim() !== '' && goalWeight.trim() !== '';
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -52,7 +55,7 @@ export const IntakeDemographics = ({ onNext, onBack, initialData }) => {
             <Text style={styles.label}>Current Age</Text>
             <TextInput
               value={age}
-              onChangeText={setAge}
+              onChangeText={(t) => setAge(numericOnly(t))}
               placeholder="32"
               placeholderTextColor={colors.gray[600]}
               keyboardType="numeric"
@@ -90,7 +93,7 @@ export const IntakeDemographics = ({ onNext, onBack, initialData }) => {
             <Text style={styles.label}>Current Weight (lbs)</Text>
             <TextInput
               value={weight}
-              onChangeText={setWeight}
+              onChangeText={(t) => setWeight(numericOnly(t))}
               placeholder="185"
               placeholderTextColor={colors.gray[600]}
               keyboardType="numeric"
@@ -101,7 +104,7 @@ export const IntakeDemographics = ({ onNext, onBack, initialData }) => {
             <Text style={styles.label}>Goal Weight (lbs)</Text>
             <TextInput
               value={goalWeight}
-              onChangeText={setGoalWeight}
+              onChangeText={(t) => setGoalWeight(numericOnly(t))}
               placeholder="165"
               placeholderTextColor={colors.gray[600]}
               keyboardType="numeric"
@@ -120,9 +123,9 @@ export const IntakeDemographics = ({ onNext, onBack, initialData }) => {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => onNext({ age: parseInt(age) || null, sex, weight: parseInt(weight) || null, goalWeight: parseInt(goalWeight) || null }, { age, sex, weight, goalWeight })}
-          activeOpacity={0.8}
+          style={[styles.button, !isComplete && styles.buttonDisabled]}
+          onPress={() => isComplete && onNext({ age: parseInt(age) || null, sex, weight: parseInt(weight) || null, goalWeight: parseInt(goalWeight) || null }, { age, sex, weight, goalWeight })}
+          activeOpacity={isComplete ? 0.8 : 1}
         >
           <Text style={styles.buttonText}>Continue</Text>
           <MaterialIcons name="arrow-forward" size={20} color={colors.textInverse} />
@@ -276,6 +279,9 @@ const makeStyles = (colors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
+  },
+  buttonDisabled: {
+    opacity: 0.4,
   },
   buttonText: {
     fontSize: 18,

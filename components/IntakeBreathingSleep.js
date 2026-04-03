@@ -147,6 +147,8 @@ export const IntakeBreathingSleep = ({ onNext, onBack, initialData }) => {
               minimumTrackTintColor={unsureSleep ? colors.gray[600] : colors.primary}
               maximumTrackTintColor={colors.gray[700]}
               thumbTintColor={unsureSleep ? colors.gray[600] : colors.primary}
+              thumbSize={44}
+              trackHeight={8}
               disabled={unsureSleep}
             />
           </View>
@@ -176,6 +178,8 @@ export const IntakeBreathingSleep = ({ onNext, onBack, initialData }) => {
               minimumTrackTintColor={unsureEnergy ? colors.gray[600] : colors.primary}
               maximumTrackTintColor={colors.gray[700]}
               thumbTintColor={unsureEnergy ? colors.gray[600] : colors.primary}
+              thumbSize={44}
+              trackHeight={8}
               disabled={unsureEnergy}
             />
             <View style={styles.sliderLabels}>
@@ -361,7 +365,7 @@ const makeStyles = (colors) => StyleSheet.create({
   },
   slider: {
     width: '100%',
-    height: 40,
+    height: 50,
     marginTop: 8,
   },
   sliderLabels: {

@@ -30,6 +30,7 @@ import { darkColors, lightColors } from "./styles/theme";
 import { ThemeProvider } from "./styles/ThemeContext";
 import { TWENTY_ONE_DAY_CHALLENGES, PILLARS } from "./constants";
 import { initAnalytics, trackScreen } from "./lib/analytics";
+import { injectWebStyles } from "./lib/webStyles";
 
 import {
   migrateIfNeeded,
@@ -153,6 +154,7 @@ export default function App() {
 
   useEffect(() => {
     initAnalytics();
+    injectWebStyles();
     loadSavedData();
   }, []);
 
@@ -756,7 +758,7 @@ export default function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case "LANDING":
-        return <LandingPage onGetStarted={() => navigateTo("WELCOME")} />;
+        return <LandingPage onGetStarted={() => navigateTo("INTAKE_PERSONAL")} />;
       case "WELCOME":
         return (
           <WelcomeScreen
@@ -769,7 +771,7 @@ export default function App() {
           <IntakePersonal
             initialData={intakeData.personal}
             onNext={handleSaveName}
-            onBack={() => navigateTo("WELCOME")}
+            onBack={() => navigateTo("LANDING")}
           />
         );
       case "INTAKE_DEMOGRAPHICS":
@@ -1002,7 +1004,7 @@ export default function App() {
           />
         );
       default:
-        return <LandingPage onGetStarted={() => navigateTo("WELCOME")} />;
+        return <LandingPage onGetStarted={() => navigateTo("INTAKE_PERSONAL")} />;
     }
   };
 

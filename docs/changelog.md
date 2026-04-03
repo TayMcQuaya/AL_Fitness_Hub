@@ -1,382 +1,5 @@
 # Session Log — Mar 12, 2026
 
-## 81. Delete-User Script Resets Access Codes
-
-Updated `scripts/delete-user.js` to automatically reset the user's access code back to "Available" when deleting a user (sets `used: false`, clears `usedBy`/`usedByEmail`/`usedAt` on the `accessCodes` document). Previously, deleting a user left their code permanently burned. Also ran a one-off cleanup to reset 7 orphaned codes from old test users.
-
-**Files modified:** `scripts/delete-user.js`
-
-## 80. Replace Book Content with Real DOCX Manuscript
-
-Replaced all placeholder book content in `BOOK_CHAPTERS` with the actual text from "Burnt Out and Ready to Feel Great by Al Cummings" DOCX file. Extracted introduction and all 11 chapters plus conclusion. Excluded: table of contents, images, weekly tracking worksheets/templates, nutrition reference tables.
-
-### Structure (13 entries, was 9)
-| ID | Title |
-|----|-------|
-| intro | Introduction: The Skinny Kid Who Ate Everything and Absorbed Nothing |
-| ch1 | When Your Lifestyle Choices Tell a Story |
-| ch2 | The Athletic Paradox |
-| ch3 | The Day I Learned to Breathe |
-| ch4 | The 5-Hour Sleep Delusion |
-| ch5 | The Dehydration Decades |
-| ch6 | Eating Everything, Absorbing Nothing |
-| ch7 | Movement Without Recovery |
-| ch8 | The Indoor Prison |
-| ch9 | The Anxious Achiever's Trap |
-| ch10 | Your 30-Day Foundation |
-| ch11 | The Tracking That Actually Works |
-| conclusion | The Life You're Actually Chasing |
-
-### Modified
-- **`constants.js`** — Complete rewrite of `BOOK_CHAPTERS` array
-
-### Notes
-- Old chapter IDs (breathing, sleep, etc.) replaced with ch1-ch11. Existing users' `readChapters` data will reset (correct behavior since content is entirely new).
-- Each chapter split into 4-6 sections with headings matching the book's natural section breaks.
-
----
-
-## 79. Fix Book Chapter Next/Previous Navigation
-
-Chapter next/previous buttons were refreshing the same chapter instead of advancing. Root cause: `onNavigate("CHAPTER_VIEW", id)` passed the chapter ID as a second argument, but `navigateTo` only accepted the screen name and ignored it — so `selectedChapterId` never updated.
-
-### Fix
-- **`App.js`** — ChapterView's `onNavigate` prop now intercepts `CHAPTER_VIEW` calls and updates `selectedChapterId` with the new chapter ID before re-rendering.
-
----
-
-## 78. Disable DEV_MODE for Production
-
-Set `DEV_MODE = false` in Dashboard and ChallengeDetail. Dev panels (phase jump, simulate day, reset buttons) are hidden from users.
-
-### Modified
-- **`components/Dashboard.js`** — `DEV_MODE = false`
-- **`components/ChallengeDetail.js`** — `DEV_MODE = false`
-
-WelcomeScreen was already `false`. Flip back to `true` for testing.
-
----
-
-## 77. Weakest Pillar Tiebreaker — Priority by Pillar Order
-
-When multiple pillars tie for the lowest score, the app now picks the one with the lowest index in the PILLARS array (higher priority). Previously the winner was arbitrary (depended on JS object key order).
-
-### Priority order (on tie)
-1. Breathing → 2. Sleep → 3. Hydration → 4. Nutrition → 5. Movement → 6. Environment → 7. Mindfulness
-
-### Changes
-- **`App.js`** — `finalizeAssessment` now iterates through `PILLARS` array order instead of `Object.entries(pillarScores)`. Uses strict less-than (`<`) so the first pillar encountered at the lowest score wins. Added `PILLARS` import from constants.
-
----
-
-## 76. Safety Notice — Larger Fonts, Required Checkbox, Firestore Sync
-
-Improved the Safety Notice screen for mobile readability and enforced the disclaimer checkbox.
-
-### Changes
-- **`components/SafetyNotice.js`** — Increased font sizes across the page: title (24→28), subtitle (14→16), coach name (14→16), coach message (12→14), disclaimer text (12→14), checkbox label (14→15), button text (14→16). Continue button is now disabled (grayed out, not tappable) until the checkbox is checked.
-- **`App.js`** — `finalizeAssessment` now syncs `disclaimerAcceptedAt` timestamp to the user's Firestore doc (fire-and-forget, alongside pillar scores).
-
-### Firestore
-The user doc now includes `disclaimerAcceptedAt` (ISO timestamp string) after completing onboarding. This provides a record that the user accepted the legal disclaimer.
-
----
-
-## 75. Intake Questionnaire Updates (Steps 5 & 7)
-
-Three changes to the onboarding assessment:
-
-### Step 5 — Nutrition & Hydration
-- **Ultra-processed meals**: Added "None" option (score: 10) at the top. Switched from 2-column grid to full-width stacked rows (label left, description right) for balanced layout with 5 options.
-- **Water intake**: Added "12+" toggle button below the 12-glass grid. Tapping it sets water to 13 (above max), displays "12+" in the label. Hydration scoring already handles `>= 10` → score 10.
-
-### Step 7 — Mindfulness
-- **Mindfulness practice**: Changed from Yes/Sometimes binary to **days per week** (0, 1, 2, 3, 4+) selector — exact same design as cardio in Step 4 (segmented `freqContainer` row)
-- **Scoring updated**: 3+ days/wk = +3, 2 days = +2, 0–1 days = +1
-
-### Modified
-- **`components/IntakeNutrition.js`** — Added "None" to processedOptions, switched to `optionsList` stacked layout, added 12+ button with styles
-- **`components/IntakeMindfulness.js`** — Replaced yes/sometimes with 0–4+ day selector using `freqContainer`/`freqButton` styles matching IntakeMovement, updated scoring logic
-- **`docs/pillar-scoring.md`** — Updated Nutrition (added None→10), Hydration (added 12+), and Mindfulness (days-per-week scoring with new examples)
-
----
-
-## 74. Skip Results Phase for Returning Users
-
-Returning users who validate their access code now skip the pillar score results page and go straight to Dashboard. Previously they'd see a results page with default scores (all 5s) since data hadn't been restored yet.
-
-### Changes
-- **`components/PaymentGate.js`** — Added `isReturningUser` prop. When `true`, successful code validation calls `onCodeValidated` directly instead of showing the results phase.
-- **`App.js`** — Passes `isReturningUser={pendingRestoreRef.current != null}` to PaymentGate.
-
----
-
-## 73. Returning User Requires Access Code Before Restore
-
-Fixed security issue where someone could guess an existing email and skip straight to the Dashboard without an access code. Now returning users must validate their access code before any profile data is restored.
-
-### Flow
-1. User enters email → Firestore finds existing account
-2. "Welcome Back!" modal appears → directs user to enter access code
-3. Code validates → profile data is restored → Dashboard
-4. Without valid code → no data restored, no access
-
-### Changes
-- **`App.js`** — `handleSaveName` no longer restores data or sets `isPaid` on match. Instead stores pending data in `pendingRestoreRef` and shows a modal. `handleCodeValidated` now checks for pending restore data and applies it after successful code validation. Added `showReturningUserModal` state and modal UI.
-
-### Security
-- No profile data leaks until code is validated
-- Access code acts as proof of ownership
-- Attacker guessing an email only sees "account exists" modal, can't proceed without the code
-
----
-
-## 72. Reset Success Confirmation Modal
-
-Added a success modal after the soft reset completes, confirming to the user that their progress was reset while their profile and payment info are intact.
-
-### Changes
-- **`components/Dashboard.js`** — Added `showResetSuccess` state and a new modal with green checkmark icon. Shows after `onReset()` resolves. Single "Got It" dismiss button.
-
----
-
-## 71. Loading Overlay for Account Check
-
-Added a loading overlay ("Setting up your profile...") that shows while Firestore is queried during onboarding. Prevents the UI from appearing frozen while the returning-user check runs.
-
-### Changes
-- **`App.js`** — Added `isCheckingAccount` state, `ActivityIndicator` overlay rendered on top of current screen. Uses neutral copy ("Setting up your profile...") that works for both new and returning users.
-
----
-
-## 70. Restore Returning User from Firestore (Single Account per Email)
-
-If a user clears localStorage or reinstalls, they no longer have to redo the entire questionnaire. When they enter their email in IntakePersonal, the app checks Firestore for an existing profile, restores it, and reuses the original userId — preventing duplicate accounts.
-
-### Flow
-- Email found + intake complete + paid → restore data → Dashboard
-- Email found + intake complete + unpaid → restore data → Payment Gate
-- Email not found / intake incomplete / offline → continue normal onboarding
-
-### Changes
-- **`lib/sync.js`** — Added `findUserByEmail(email)` query function. Searches `users` collection by email (`limit(1)`), returns `null` if offline or not found. Added `query`, `where`, `limit` imports.
-- **`lib/storage.js`** — Added `restoreUserData(data)` to bulk-save a Firestore profile to AsyncStorage via `multiSet`. Added `setUserId(id)` to overwrite the local userId.
-- **`App.js`** — Updated `handleSaveName` to check Firestore **before** any cloud sync. If returning user found: swaps local userId back to the original, deletes the orphaned new doc, restores profile to AsyncStorage + React state, re-saves the new name (so name updates are respected), then navigates based on payment status. Cloud sync to a new doc only fires if no existing user is found.
-
-### Dedup behavior
-- One Firestore doc per email — returning user reuses original userId
-- Orphaned new userId doc is deleted (fire-and-forget)
-- If user enters a different name, the new name wins everywhere (AsyncStorage, state, Firestore)
-
-### Not restored
-- Challenge progress, streaks, and daily logs — returning users start fresh on challenges (correct for refund tracking).
-
----
-
-## 69. Reset Tracking for Refund Eligibility
-
-Added Firestore tracking when a user resets their progress, so Coach Al can verify 21-day challenge eligibility (no resets, no skipped days).
-
-### Changes
-- **`lib/sync.js`** — Added `syncUserReset()` that records `resetCount`, `resetHistory` (array of timestamps), and `lastResetAt` on the user doc. Preserves all existing Firestore data instead of deleting it.
-- **`App.js`** — `handleReset` now calls `syncUserReset(userId)` instead of `deleteUserData(userId)`, keeping user history intact for review.
-- **`scripts/export-users.js`** — Added "Resets" and "Last Reset" columns to the spreadsheet export so Al can check eligibility at a glance.
-
-### How Al checks eligibility
-- Export users → check **Resets** column (must be 0)
-- Check **Days Logged** column (must be 21)
-
----
-
-## 68. Task Text Review Doc for Coach Al
-
-Generated a Word document (`exports/task-text-review.docx`) containing all 28 challenge tasks across 7 pillars for Coach Al to review and suggest text changes. Generator script at `scripts/generate-task-review.js`.
-
----
-
-## 67. Declutter Zone — Wording Update
-
-Updated task description from "your space" to "your living space" for clarity.
-
-### Modified
-- **`constants.js`** — Updated Declutter Zone description (1 instance)
-- **`21-day-challenges.md`** — Updated all 3 phase references
-
----
-
-## 66. Water Target — Hardcoded 12 Cups
-
-Coach Al requested a flat 12 cups/day for all users instead of the weight-based formula.
-
-### Modified
-- **`lib/nutrition.js`** — `calculateWaterTarget()` now returns 12 instead of `(weightLbs * 0.5) / 8`
-
----
-
-## 65. Nutrition Page — Estimates Disclaimer
-
-Added a prominent notice below the calorie/protein cards clarifying that targets are estimates and users should consult Coach Al for precise numbers.
-
-### Modified
-- **`components/NutritionSummary.js`** — Added orange-themed disclaimer box with "Estimates Only" title between stats grid and Coach Al's Pillars section
-
----
-
-## 64. "Burnout" → "Burnt Out" — Text Updates
-
-Changed "burnout" to "burnt out" across user-facing copy per Coach Al's request.
-
-### Modified
-- **`components/LandingPage.js`** — 4 instances updated (hero subtitle, transition box, FAQ, about section)
-- **`constants.js`** — Book chapter heading and intro text (2 instances)
-
----
-
-## 63. LandingPage Avatar Circles Fix
-
-Replaced broken `<Image>` avatars (external URLs failing on RN Web) with colored `<View>` circles matching the WelcomeScreen pattern.
-
-### Modified
-- **`components/LandingPage.js`** — Swapped `Image` elements with `View` circles using `colors.gray[400/500/600]`, renamed `avatarImage` style to `avatarCircle`
-
----
-
-# Session Log — Mar 5, 2026
-
-## 62. Sleep Scoring — Coach Al's Scale
-
-Updated the sleep pillar scoring formula to use Coach Al's specified hours-to-score mapping. Wake energy remains as a secondary factor.
-
-### New Hours Scale
-| Hours | Score |
-|-------|-------|
-| 4 or less | 0 |
-| 5 | 2.5 |
-| 6 | 5 |
-| 7 | 7.5 |
-| 8+ | 10 |
-
-### Formula Change
-- **Before:** Additive point system — `1 + sleepPoints(0-4) + energyPoints(1-5)`, capped at 10
-- **After:** Average of hours score (0-10) and energy score (raw 1-10 slider), rounded, clamped 1-10
-- "I don't know" defaults to 5 (neutral midpoint) instead of +2 points
-
-### Modified
-- **`components/IntakeBreathingSleep.js`** — Rewrote `calculateSleepScore()` with Coach Al's hours scale and averaging formula
-- **`docs/pillar-scoring.md`** — Updated Sleep section with new scale, formula, and examples table
-
----
-
-## 61. Intake Movement — Weekly Frequency Labels
-
-Coach Al requested the cardio and resistance training frequency questions explicitly state "Weekly" so users know the timeframe.
-
-### Modified
-- **`components/IntakeMovement.js`**:
-  - "Resistance Training Frequency" → "Weekly Resistance Training"
-  - "Cardio Training Frequency" → "Weekly Cardio Training"
-  - Button labels remain "Days" (header provides the weekly context)
-
----
-
-## 60. Live Stan Store + Calendly Links
-
-Replaced all placeholder URLs with Coach Al's actual links.
-
-### Stan Store → `https://stan.store/Althetrainer/p/the-50-accountability-challenge`
-- **`constants.js`** — Updated `STAN_STORE_URL` (was `stan.store/coachal`)
-- **`components/PaymentGate.js`** — Updated fallback error message to reference `stan.store/Althetrainer`
-- Appears on: PaymentGate "Get Full Access" button (shown after completing the questionnaire)
-
-### Calendly → `https://calendly.com/growyourmusclesstudio-info/30min`
-- **`components/Dashboard.js`** — Updated 3 occurrences (Day 21 celebration, bottom CTA card, completion modal)
-- **`components/ChallengeDetail.js`** — Updated 1 occurrence (completion modal)
-
----
-
-## 59. Dev Controls — Time Simulation on ChallengeDetail
-
-Added the same `-1 Day` / `+1 Day` / `Reset` time simulation controls from Dashboard to ChallengeDetail, so day advancement can be tested without switching screens.
-
-### Modified
-- **`App.js`** — Passes `onDevSimulate={handleDevSimulateDay}` to ChallengeDetail
-- **`components/ChallengeDetail.js`** — Accepts `onDevSimulate` prop. Added time simulation button row and debug readout (`Start | Day | Done | Missed`) below existing phase jump buttons. Added `getMissedDays` import from storage, `completedDays`/`missedDays` derivation, and `devInfoText` style.
-
----
-
-## 58. Fix: Modals Not Centering on Mobile Web
-
-**Problem:** All modals (milestone triggers, video player, reset confirmation) were rendered inside the `ScrollView` in both Dashboard and ChallengeDetail. On mobile web, React Native's `<Modal transparent>` doesn't get proper full-viewport positioning inside a scroll container — the overlay gets constrained by the scroll content instead of covering the full screen, pushing the modal card down and cutting off the header.
-
-**Fix:** Moved all modals outside the `ScrollView` to be siblings of it within the root `<View style={{flex: 1}}>` container, between `</ScrollView>` and `<BottomNav>`.
-
-### Modified
-- **`components/Dashboard.js`** — Moved 4 modals (Milestone, VideoPlayer, Completion, Reset) outside ScrollView
-- **`components/ChallengeDetail.js`** — Moved 3 modals (Completion, Milestone, VideoPlayer) outside ScrollView
-
----
-
-## 57. Challenge Completion Modal
-
-Added a congratulatory modal that pops up when a user finishes their 21-day challenge, prompting them to book a free coaching call with Al.
-
-### How it works
-- Auto-triggers once when `currentDay` reaches 21 (via existing `useEffect` on day transitions)
-- Confetti fires alongside it (existing behavior)
-- Trophy icon + "Congratulations!" header
-- Personalized message referencing their pillar challenge
-- Green "Book Your Free Call with Al" CTA button (opens Calendly)
-- "Maybe Later" dismiss link
-- Won't re-trigger on subsequent visits — inline celebration cards handle that
-
-### Modified
-- **`components/Dashboard.js`** — Added `showCompletionModal` state, completion modal JSX with CTA, updated `useEffect` to show completion modal at Day 21 instead of milestone modal, added completion modal styles
-- **`components/ChallengeDetail.js`** — Same: added `showCompletionModal` state, completion modal JSX, updated `useEffect`, added `Linking` import and completion modal styles
-
----
-
-# Session Log — Mar 4, 2026
-
-## Fix: VideoPlayerModal overflow on mobile web
-
-**Problem:** After migrating to `expo-video`, the video modal overflowed the viewport on mobile web in portrait orientation. The video container was ~582px tall on a ~327px wide card, creating extra whitespace below the page and cutting off the video.
-
-**Root cause:** Height calculation used `videoWidth * (16/9)` — a portrait ratio. The videos are **landscape** (16:9), so the multiplier should be the inverse: `9/16`.
-
-### Changes (`components/VideoPlayerModal.js`)
-
-1. **Fixed aspect ratio multiplier** (line 19)
-   - Before: `videoWidth * (16 / 9)` → ~582px height (portrait ratio, wrong)
-   - After: `videoWidth * (9 / 16)` → ~184px height (landscape ratio, correct)
-   - Cap lowered from `screenHeight * 0.7` to `0.6` since the smaller height no longer needs the extra room
-
-2. **Added maxHeight safety on card container** (line 46)
-   - `maxHeight: screenHeight - 80` prevents the card (header + video) from ever exceeding the viewport
-   - 80px accounts for safe area / status bar breathing room on both ends
-
-### Verification
-- `npm run web` → DevTools mobile view (iPhone SE or similar narrow portrait)
-- Trigger Day 10 milestone → tap "Watch Video"
-- Modal centered, video fully visible, no overflow below page
-- Video plays at correct landscape proportions with native controls
-- Resize browser wider/narrower — adapts responsively
-
----
-
-## 56. Added Sleep Pillar Video
-
-Added the final missing pillar video. All 7 pillars now have Coach Al videos for the Day 10 milestone.
-
-### Added
-- **`assets/videos/sleep.mp4`** (3.4 MB) — Sleep pillar video
-
-### Modified
-- **`constants.js`** — Added `sleep: require("./assets/videos/sleep.mp4")` to `PILLAR_VIDEOS`
-
----
-
-# Session Log — Feb 22, 2026
-
 ## 1. Data Persistence Layer + Firebase Cloud Sync
 
 **The big one.** Fixed the fundamentally broken data layer.
@@ -424,7 +47,6 @@ The 7 pillars grid used a fixed width from `Dimensions.get("window")` captured o
 - Changed pillars from 2-column grid to vertical stack (each pillar = horizontal row with icon + text)
 - Made features grid responsive (1 col on narrow, 2 on wide)
 - Book section stacks vertically on very narrow screens
-
 
 ## 5. Light/Dark Mode Toggle
 
@@ -1145,3 +767,416 @@ Added Coach Al's pillar-specific videos to the Day 10 "Mid-Challenge Video" mile
 - **`constants.js`** — Added `PILLAR_VIDEOS` mapping (pillar ID → require() asset)
 - **`components/Dashboard.js`** — Day 10 milestone now has "Watch Video" button, imports VideoPlayerModal + PILLAR_VIDEOS
 - **`components/ChallengeDetail.js`** — Day 10 milestone now has "Watch Video" button, milestone timeline Day 10 row is tappable to play video, imports VideoPlayerModal + PILLAR_VIDEOS
+
+## 56. Added Sleep Pillar Video
+
+Added the final missing pillar video. All 7 pillars now have Coach Al videos for the Day 10 milestone.
+
+### Added
+- **`assets/videos/sleep.mp4`** (3.4 MB) — Sleep pillar video
+
+### Modified
+- **`constants.js`** — Added `sleep: require("./assets/videos/sleep.mp4")` to `PILLAR_VIDEOS`
+
+---
+
+# Session Log — Feb 22, 2026
+
+## 57. Challenge Completion Modal
+
+Added a congratulatory modal that pops up when a user finishes their 21-day challenge, prompting them to book a free coaching call with Al.
+
+### How it works
+- Auto-triggers once when `currentDay` reaches 21 (via existing `useEffect` on day transitions)
+- Confetti fires alongside it (existing behavior)
+- Trophy icon + "Congratulations!" header
+- Personalized message referencing their pillar challenge
+- Green "Book Your Free Call with Al" CTA button (opens Calendly)
+- "Maybe Later" dismiss link
+- Won't re-trigger on subsequent visits — inline celebration cards handle that
+
+### Modified
+- **`components/Dashboard.js`** — Added `showCompletionModal` state, completion modal JSX with CTA, updated `useEffect` to show completion modal at Day 21 instead of milestone modal, added completion modal styles
+- **`components/ChallengeDetail.js`** — Same: added `showCompletionModal` state, completion modal JSX, updated `useEffect`, added `Linking` import and completion modal styles
+
+---
+
+# Session Log — Mar 4, 2026
+
+## Fix: VideoPlayerModal overflow on mobile web
+
+**Problem:** After migrating to `expo-video`, the video modal overflowed the viewport on mobile web in portrait orientation. The video container was ~582px tall on a ~327px wide card, creating extra whitespace below the page and cutting off the video.
+
+**Root cause:** Height calculation used `videoWidth * (16/9)` — a portrait ratio. The videos are **landscape** (16:9), so the multiplier should be the inverse: `9/16`.
+
+### Changes (`components/VideoPlayerModal.js`)
+
+1. **Fixed aspect ratio multiplier** (line 19)
+   - Before: `videoWidth * (16 / 9)` → ~582px height (portrait ratio, wrong)
+   - After: `videoWidth * (9 / 16)` → ~184px height (landscape ratio, correct)
+   - Cap lowered from `screenHeight * 0.7` to `0.6` since the smaller height no longer needs the extra room
+
+2. **Added maxHeight safety on card container** (line 46)
+   - `maxHeight: screenHeight - 80` prevents the card (header + video) from ever exceeding the viewport
+   - 80px accounts for safe area / status bar breathing room on both ends
+
+### Verification
+- `npm run web` → DevTools mobile view (iPhone SE or similar narrow portrait)
+- Trigger Day 10 milestone → tap "Watch Video"
+- Modal centered, video fully visible, no overflow below page
+- Video plays at correct landscape proportions with native controls
+- Resize browser wider/narrower — adapts responsively
+
+---
+
+## 58. Fix: Modals Not Centering on Mobile Web
+
+**Problem:** All modals (milestone triggers, video player, reset confirmation) were rendered inside the `ScrollView` in both Dashboard and ChallengeDetail. On mobile web, React Native's `<Modal transparent>` doesn't get proper full-viewport positioning inside a scroll container — the overlay gets constrained by the scroll content instead of covering the full screen, pushing the modal card down and cutting off the header.
+
+**Fix:** Moved all modals outside the `ScrollView` to be siblings of it within the root `<View style={{flex: 1}}>` container, between `</ScrollView>` and `<BottomNav>`.
+
+### Modified
+- **`components/Dashboard.js`** — Moved 4 modals (Milestone, VideoPlayer, Completion, Reset) outside ScrollView
+- **`components/ChallengeDetail.js`** — Moved 3 modals (Completion, Milestone, VideoPlayer) outside ScrollView
+
+---
+
+## 59. Dev Controls — Time Simulation on ChallengeDetail
+
+Added the same `-1 Day` / `+1 Day` / `Reset` time simulation controls from Dashboard to ChallengeDetail, so day advancement can be tested without switching screens.
+
+### Modified
+- **`App.js`** — Passes `onDevSimulate={handleDevSimulateDay}` to ChallengeDetail
+- **`components/ChallengeDetail.js`** — Accepts `onDevSimulate` prop. Added time simulation button row and debug readout (`Start | Day | Done | Missed`) below existing phase jump buttons. Added `getMissedDays` import from storage, `completedDays`/`missedDays` derivation, and `devInfoText` style.
+
+---
+
+## 60. Live Stan Store + Calendly Links
+
+Replaced all placeholder URLs with Coach Al's actual links.
+
+### Stan Store → `https://stan.store/Althetrainer/p/the-50-accountability-challenge`
+- **`constants.js`** — Updated `STAN_STORE_URL` (was `stan.store/coachal`)
+- **`components/PaymentGate.js`** — Updated fallback error message to reference `stan.store/Althetrainer`
+- Appears on: PaymentGate "Get Full Access" button (shown after completing the questionnaire)
+
+### Calendly → `https://calendly.com/growyourmusclesstudio-info/30min`
+- **`components/Dashboard.js`** — Updated 3 occurrences (Day 21 celebration, bottom CTA card, completion modal)
+- **`components/ChallengeDetail.js`** — Updated 1 occurrence (completion modal)
+
+---
+
+## 61. Intake Movement — Weekly Frequency Labels
+
+Coach Al requested the cardio and resistance training frequency questions explicitly state "Weekly" so users know the timeframe.
+
+### Modified
+- **`components/IntakeMovement.js`**:
+  - "Resistance Training Frequency" → "Weekly Resistance Training"
+  - "Cardio Training Frequency" → "Weekly Cardio Training"
+  - Button labels remain "Days" (header provides the weekly context)
+
+---
+
+## 62. Sleep Scoring — Coach Al's Scale
+
+Updated the sleep pillar scoring formula to use Coach Al's specified hours-to-score mapping. Wake energy remains as a secondary factor.
+
+### New Hours Scale
+| Hours | Score |
+|-------|-------|
+| 4 or less | 0 |
+| 5 | 2.5 |
+| 6 | 5 |
+| 7 | 7.5 |
+| 8+ | 10 |
+
+### Formula Change
+- **Before:** Additive point system — `1 + sleepPoints(0-4) + energyPoints(1-5)`, capped at 10
+- **After:** Average of hours score (0-10) and energy score (raw 1-10 slider), rounded, clamped 1-10
+- "I don't know" defaults to 5 (neutral midpoint) instead of +2 points
+
+### Modified
+- **`components/IntakeBreathingSleep.js`** — Rewrote `calculateSleepScore()` with Coach Al's hours scale and averaging formula
+- **`docs/pillar-scoring.md`** — Updated Sleep section with new scale, formula, and examples table
+
+---
+
+## 63. LandingPage Avatar Circles Fix
+
+Replaced broken `<Image>` avatars (external URLs failing on RN Web) with colored `<View>` circles matching the WelcomeScreen pattern.
+
+### Modified
+- **`components/LandingPage.js`** — Swapped `Image` elements with `View` circles using `colors.gray[400/500/600]`, renamed `avatarImage` style to `avatarCircle`
+
+---
+
+# Session Log — Mar 5, 2026
+
+## 64. "Burnout" → "Burnt Out" — Text Updates
+
+Changed "burnout" to "burnt out" across user-facing copy per Coach Al's request.
+
+### Modified
+- **`components/LandingPage.js`** — 4 instances updated (hero subtitle, transition box, FAQ, about section)
+- **`constants.js`** — Book chapter heading and intro text (2 instances)
+
+---
+
+## 65. Nutrition Page — Estimates Disclaimer
+
+Added a prominent notice below the calorie/protein cards clarifying that targets are estimates and users should consult Coach Al for precise numbers.
+
+### Modified
+- **`components/NutritionSummary.js`** — Added orange-themed disclaimer box with "Estimates Only" title between stats grid and Coach Al's Pillars section
+
+---
+
+## 66. Water Target — Hardcoded 12 Cups
+
+Coach Al requested a flat 12 cups/day for all users instead of the weight-based formula.
+
+### Modified
+- **`lib/nutrition.js`** — `calculateWaterTarget()` now returns 12 instead of `(weightLbs * 0.5) / 8`
+
+---
+
+## 67. Declutter Zone — Wording Update
+
+Updated task description from "your space" to "your living space" for clarity.
+
+### Modified
+- **`constants.js`** — Updated Declutter Zone description (1 instance)
+- **`21-day-challenges.md`** — Updated all 3 phase references
+
+---
+
+## 68. Task Text Review Doc for Coach Al
+
+Generated a Word document (`exports/task-text-review.docx`) containing all 28 challenge tasks across 7 pillars for Coach Al to review and suggest text changes. Generator script at `scripts/generate-task-review.js`.
+
+---
+
+## 69. Reset Tracking for Refund Eligibility
+
+Added Firestore tracking when a user resets their progress, so Coach Al can verify 21-day challenge eligibility (no resets, no skipped days).
+
+### Changes
+- **`lib/sync.js`** — Added `syncUserReset()` that records `resetCount`, `resetHistory` (array of timestamps), and `lastResetAt` on the user doc. Preserves all existing Firestore data instead of deleting it.
+- **`App.js`** — `handleReset` now calls `syncUserReset(userId)` instead of `deleteUserData(userId)`, keeping user history intact for review.
+- **`scripts/export-users.js`** — Added "Resets" and "Last Reset" columns to the spreadsheet export so Al can check eligibility at a glance.
+
+### How Al checks eligibility
+- Export users → check **Resets** column (must be 0)
+- Check **Days Logged** column (must be 21)
+
+---
+
+## 70. Restore Returning User from Firestore (Single Account per Email)
+
+If a user clears localStorage or reinstalls, they no longer have to redo the entire questionnaire. When they enter their email in IntakePersonal, the app checks Firestore for an existing profile, restores it, and reuses the original userId — preventing duplicate accounts.
+
+### Flow
+- Email found + intake complete + paid → restore data → Dashboard
+- Email found + intake complete + unpaid → restore data → Payment Gate
+- Email not found / intake incomplete / offline → continue normal onboarding
+
+### Changes
+- **`lib/sync.js`** — Added `findUserByEmail(email)` query function. Searches `users` collection by email (`limit(1)`), returns `null` if offline or not found. Added `query`, `where`, `limit` imports.
+- **`lib/storage.js`** — Added `restoreUserData(data)` to bulk-save a Firestore profile to AsyncStorage via `multiSet`. Added `setUserId(id)` to overwrite the local userId.
+- **`App.js`** — Updated `handleSaveName` to check Firestore **before** any cloud sync. If returning user found: swaps local userId back to the original, deletes the orphaned new doc, restores profile to AsyncStorage + React state, re-saves the new name (so name updates are respected), then navigates based on payment status. Cloud sync to a new doc only fires if no existing user is found.
+
+### Dedup behavior
+- One Firestore doc per email — returning user reuses original userId
+- Orphaned new userId doc is deleted (fire-and-forget)
+- If user enters a different name, the new name wins everywhere (AsyncStorage, state, Firestore)
+
+### Not restored
+- Challenge progress, streaks, and daily logs — returning users start fresh on challenges (correct for refund tracking).
+
+---
+
+## 71. Loading Overlay for Account Check
+
+Added a loading overlay ("Setting up your profile...") that shows while Firestore is queried during onboarding. Prevents the UI from appearing frozen while the returning-user check runs.
+
+### Changes
+- **`App.js`** — Added `isCheckingAccount` state, `ActivityIndicator` overlay rendered on top of current screen. Uses neutral copy ("Setting up your profile...") that works for both new and returning users.
+
+---
+
+## 72. Reset Success Confirmation Modal
+
+Added a success modal after the soft reset completes, confirming to the user that their progress was reset while their profile and payment info are intact.
+
+### Changes
+- **`components/Dashboard.js`** — Added `showResetSuccess` state and a new modal with green checkmark icon. Shows after `onReset()` resolves. Single "Got It" dismiss button.
+
+---
+
+## 73. Returning User Requires Access Code Before Restore
+
+Fixed security issue where someone could guess an existing email and skip straight to the Dashboard without an access code. Now returning users must validate their access code before any profile data is restored.
+
+### Flow
+1. User enters email → Firestore finds existing account
+2. "Welcome Back!" modal appears → directs user to enter access code
+3. Code validates → profile data is restored → Dashboard
+4. Without valid code → no data restored, no access
+
+### Changes
+- **`App.js`** — `handleSaveName` no longer restores data or sets `isPaid` on match. Instead stores pending data in `pendingRestoreRef` and shows a modal. `handleCodeValidated` now checks for pending restore data and applies it after successful code validation. Added `showReturningUserModal` state and modal UI.
+
+### Security
+- No profile data leaks until code is validated
+- Access code acts as proof of ownership
+- Attacker guessing an email only sees "account exists" modal, can't proceed without the code
+
+---
+
+## 74. Skip Results Phase for Returning Users
+
+Returning users who validate their access code now skip the pillar score results page and go straight to Dashboard. Previously they'd see a results page with default scores (all 5s) since data hadn't been restored yet.
+
+### Changes
+- **`components/PaymentGate.js`** — Added `isReturningUser` prop. When `true`, successful code validation calls `onCodeValidated` directly instead of showing the results phase.
+- **`App.js`** — Passes `isReturningUser={pendingRestoreRef.current != null}` to PaymentGate.
+
+---
+
+## 75. Intake Questionnaire Updates (Steps 5 & 7)
+
+Three changes to the onboarding assessment:
+
+### Step 5 — Nutrition & Hydration
+- **Ultra-processed meals**: Added "None" option (score: 10) at the top. Switched from 2-column grid to full-width stacked rows (label left, description right) for balanced layout with 5 options.
+- **Water intake**: Added "12+" toggle button below the 12-glass grid. Tapping it sets water to 13 (above max), displays "12+" in the label. Hydration scoring already handles `>= 10` → score 10.
+
+### Step 7 — Mindfulness
+- **Mindfulness practice**: Changed from Yes/Sometimes binary to **days per week** (0, 1, 2, 3, 4+) selector — exact same design as cardio in Step 4 (segmented `freqContainer` row)
+- **Scoring updated**: 3+ days/wk = +3, 2 days = +2, 0–1 days = +1
+
+### Modified
+- **`components/IntakeNutrition.js`** — Added "None" to processedOptions, switched to `optionsList` stacked layout, added 12+ button with styles
+- **`components/IntakeMindfulness.js`** — Replaced yes/sometimes with 0–4+ day selector using `freqContainer`/`freqButton` styles matching IntakeMovement, updated scoring logic
+- **`docs/pillar-scoring.md`** — Updated Nutrition (added None→10), Hydration (added 12+), and Mindfulness (days-per-week scoring with new examples)
+
+---
+
+## 76. Safety Notice — Larger Fonts, Required Checkbox, Firestore Sync
+
+Improved the Safety Notice screen for mobile readability and enforced the disclaimer checkbox.
+
+### Changes
+- **`components/SafetyNotice.js`** — Increased font sizes across the page: title (24→28), subtitle (14→16), coach name (14→16), coach message (12→14), disclaimer text (12→14), checkbox label (14→15), button text (14→16). Continue button is now disabled (grayed out, not tappable) until the checkbox is checked.
+- **`App.js`** — `finalizeAssessment` now syncs `disclaimerAcceptedAt` timestamp to the user's Firestore doc (fire-and-forget, alongside pillar scores).
+
+### Firestore
+The user doc now includes `disclaimerAcceptedAt` (ISO timestamp string) after completing onboarding. This provides a record that the user accepted the legal disclaimer.
+
+---
+
+## 77. Weakest Pillar Tiebreaker — Priority by Pillar Order
+
+When multiple pillars tie for the lowest score, the app now picks the one with the lowest index in the PILLARS array (higher priority). Previously the winner was arbitrary (depended on JS object key order).
+
+### Priority order (on tie)
+1. Breathing → 2. Sleep → 3. Hydration → 4. Nutrition → 5. Movement → 6. Environment → 7. Mindfulness
+
+### Changes
+- **`App.js`** — `finalizeAssessment` now iterates through `PILLARS` array order instead of `Object.entries(pillarScores)`. Uses strict less-than (`<`) so the first pillar encountered at the lowest score wins. Added `PILLARS` import from constants.
+
+---
+
+## 78. Disable DEV_MODE for Production
+
+Set `DEV_MODE = false` in Dashboard and ChallengeDetail. Dev panels (phase jump, simulate day, reset buttons) are hidden from users.
+
+### Modified
+- **`components/Dashboard.js`** — `DEV_MODE = false`
+- **`components/ChallengeDetail.js`** — `DEV_MODE = false`
+
+WelcomeScreen was already `false`. Flip back to `true` for testing.
+
+---
+
+## 79. Fix Book Chapter Next/Previous Navigation
+
+Chapter next/previous buttons were refreshing the same chapter instead of advancing. Root cause: `onNavigate("CHAPTER_VIEW", id)` passed the chapter ID as a second argument, but `navigateTo` only accepted the screen name and ignored it — so `selectedChapterId` never updated.
+
+### Fix
+- **`App.js`** — ChapterView's `onNavigate` prop now intercepts `CHAPTER_VIEW` calls and updates `selectedChapterId` with the new chapter ID before re-rendering.
+
+---
+
+## 80. Replace Book Content with Real DOCX Manuscript
+
+Replaced all placeholder book content in `BOOK_CHAPTERS` with the actual text from "Burnt Out and Ready to Feel Great by Al Cummings" DOCX file. Extracted introduction and all 11 chapters plus conclusion. Excluded: table of contents, images, weekly tracking worksheets/templates, nutrition reference tables.
+
+### Structure (13 entries, was 9)
+| ID | Title |
+|----|-------|
+| intro | Introduction: The Skinny Kid Who Ate Everything and Absorbed Nothing |
+| ch1 | When Your Lifestyle Choices Tell a Story |
+| ch2 | The Athletic Paradox |
+| ch3 | The Day I Learned to Breathe |
+| ch4 | The 5-Hour Sleep Delusion |
+| ch5 | The Dehydration Decades |
+| ch6 | Eating Everything, Absorbing Nothing |
+| ch7 | Movement Without Recovery |
+| ch8 | The Indoor Prison |
+| ch9 | The Anxious Achiever's Trap |
+| ch10 | Your 30-Day Foundation |
+| ch11 | The Tracking That Actually Works |
+| conclusion | The Life You're Actually Chasing |
+
+### Modified
+- **`constants.js`** — Complete rewrite of `BOOK_CHAPTERS` array
+
+### Notes
+- Old chapter IDs (breathing, sleep, etc.) replaced with ch1-ch11. Existing users' `readChapters` data will reset (correct behavior since content is entirely new).
+- Each chapter split into 4-6 sections with headings matching the book's natural section breaks.
+
+---
+
+## 81. Delete-User Script Resets Access Codes
+
+Updated `scripts/delete-user.js` to automatically reset the user's access code back to "Available" when deleting a user (sets `used: false`, clears `usedBy`/`usedByEmail`/`usedAt` on the `accessCodes` document). Previously, deleting a user left their code permanently burned. Also ran a one-off cleanup to reset 7 orphaned codes from old test users.
+
+**Files modified:** `scripts/delete-user.js`
+
+## 82. Legal Disclaimer, Privacy Policy, and Help & Support Screens
+
+Added full Legal Disclaimer (Terms & Conditions) and Privacy Policy screens with proper formatting — section headers, bullet points, subsections. Content is word-for-word from Coach Al's approved text (effective date March 26, 2026). Added Help & Support screen with prominent email banner, common FAQs, and office hours. All three screens accessible from Support page with dark/light toggle.
+
+**Files modified:** `components/LegalScreen.js` (new), `components/SupportScreen.js`, `App.js`, `constants.js`
+
+## 83. Google Analytics (GA4) Integration
+
+Added GA4 tracking (Measurement ID: G-SSY0Z6QS58). Every screen transition fires a `screen_view` event via `navigateTo()`. GA4 script loads dynamically on web only.
+
+**Files modified:** `lib/analytics.js` (new), `App.js`
+
+## 84. Fix Stress Slider Labels
+
+Labels were backwards — `1 - very stressed` / `10 - very peaceful` now correctly reads `1 - very peaceful` / `10 - very stressed`. Scoring logic was already correct (no change needed).
+
+**Files modified:** `components/IntakeMindfulness.js`
+
+## 85. Skip Welcome Screen
+
+Removed the intermediate "GYM Studio" welcome page. "Start Assessment" on the landing page now goes directly to the first intake screen.
+
+**Files modified:** `App.js`
+
+## 86. Step 2 Validation — Numbers Only and Required Fields
+
+Age, current weight, and goal weight fields now strip non-numeric characters. Continue button is disabled until all fields (age, sex, weight, goal weight) are filled.
+
+**Files modified:** `components/IntakeDemographics.js`
+
+## 87. Larger Slider Thumbs and Thicker Tracks
+
+Increased slider thumb size to 44px and track height to 8px across all intake assessment screens for easier grabbing on both desktop and mobile. Added CSS fallback for web browsers.
+
+**Files modified:** `components/IntakeMovement.js`, `components/IntakeBreathingSleep.js`, `components/IntakeMindfulness.js`, `lib/webStyles.js`
