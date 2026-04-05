@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SafeAreaView, StatusBar, View, Text, ActivityIndicator, StyleSheet, Modal, TouchableOpacity } from "react-native";
+import { SafeAreaView, StatusBar, View, Text, TextInput, ActivityIndicator, StyleSheet, Modal, TouchableOpacity } from "react-native";
 
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { IntakePersonal } from "./components/IntakePersonal";
@@ -23,6 +23,7 @@ import { ChallengeDetail } from "./components/ChallengeDetail";
 import { BookScreen } from "./components/BookScreen";
 import { ChapterView } from "./components/ChapterView";
 import { PaymentGate } from "./components/PaymentGate";
+import { AssessmentResults } from "./components/AssessmentResults";
 import { LandingPage } from "./components/LandingPage";
 import { MeditationList } from "./components/MeditationList";
 import { MeditationPlayer } from "./components/MeditationPlayer";
@@ -146,6 +147,12 @@ export default function App() {
   const [showReturningUserModal, setShowReturningUserModal] = useState(false);
   const pendingRestoreRef = useRef(null);
 
+  // Email verification state
+  const [verificationStep, setVerificationStep] = useState(null);
+  const [verificationError, setVerificationError] = useState(null);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+
   // Theme state
   const [isDark, setIsDark] = useState(true);
 
@@ -173,10 +180,11 @@ export default function App() {
       if (data.paid) setIsPaid(true);
       if (data.email) setUserEmail(data.email);
 
-      // Screen guard: unpaid users with completed intake go to PAYMENT_GATE
+      // Skip payment gate — app is free for now
+      setIsPaid(true);
       if (data.screen) {
-        if (!data.paid && data.intakeCompleted) {
-          setCurrentScreen("PAYMENT_GATE");
+        if ((data.screen === "PAYMENT_GATE" || data.screen === "ASSESSMENT_RESULTS") && data.intakeCompleted) {
+          setCurrentScreen("DASHBOARD");
         } else {
           setCurrentScreen(data.screen);
         }
@@ -324,21 +332,23 @@ export default function App() {
         try {
           const existing = await findUserByEmail(email);
           if (existing && existing.intakeCompleted) {
-            // Reuse the original userId — one Firestore doc per email
+            // Completed account — require email verification to restore
+            setVerificationEmail(email.trim().toLowerCase());
+            setVerificationStep("prompt");
+            setVerificationError(null);
+            setVerificationCode("");
+            setIsCheckingAccount(false);
+            setShowReturningUserModal(true);
+            return;
+          }
+          if (existing && !existing.intakeCompleted) {
+            // Incomplete account — reuse their Firestore doc, continue intake
             const orphanId = userIdRef.current;
             if (existing.id !== orphanId) {
               userIdRef.current = existing.id;
               await setUserId(existing.id);
               deleteUserData(orphanId);
             }
-
-            // Store data for restore AFTER code validation
-            pendingRestoreRef.current = { ...existing, name };
-
-            // Show returning user modal — don't restore data yet
-            setIsCheckingAccount(false);
-            setShowReturningUserModal(true);
-            return;
           }
         } finally {
           setIsCheckingAccount(false);
@@ -418,7 +428,9 @@ export default function App() {
       console.log("Error saving assessment:", error);
     }
 
-    navigateTo("PAYMENT_GATE");
+    // Skip payment gate — app is free for now
+    setIsPaid(true);
+    navigateTo("ASSESSMENT_RESULTS");
   };
 
   // --- Challenge Handlers ---
@@ -639,6 +651,79 @@ export default function App() {
     return validateAccessCode(userIdRef.current, userEmail, code);
   };
 
+  // --- Email Verification ---
+
+  const handleSendVerificationCode = async () => {
+    setVerificationStep("sending");
+    setVerificationError(null);
+    try {
+      const res = await fetch("/api/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVerificationError(data.error || "Failed to send code.");
+        setVerificationStep("prompt");
+        return;
+      }
+      setVerificationStep("entering");
+    } catch (error) {
+      setVerificationError("Network error. Please try again.");
+      setVerificationStep("prompt");
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    setVerificationStep("verifying");
+    setVerificationError(null);
+    try {
+      const res = await fetch("/api/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail, code: verificationCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVerificationError(data.error || "Verification failed.");
+        setVerificationStep("entering");
+        return;
+      }
+
+      // Verified — restore account
+      const userData = data.userData;
+      if (userData.id) {
+        const orphanId = userIdRef.current;
+        userIdRef.current = userData.id;
+        await setUserId(userData.id);
+        if (orphanId && orphanId !== userData.id) {
+          deleteUserData(orphanId);
+        }
+      }
+
+      await restoreUserData(userData);
+      await saveName(userData.name);
+      setUserName(userData.name);
+      if (userData.age) setUserAge(userData.age);
+      if (userData.sex) setUserSex(userData.sex);
+      if (userData.weight) setUserWeight(userData.weight);
+      if (userData.goalWeight) setUserGoalWeight(userData.goalWeight);
+      if (userData.goals) setUserGoals(userData.goals);
+      if (userData.experience) setUserExperience(userData.experience);
+      if (userData.pillarScores) setPillarScores(userData.pillarScores);
+      if (userData.focusPillar) setFocusPillar(userData.focusPillar);
+      setIsPaid(true);
+
+      setShowReturningUserModal(false);
+      setVerificationStep(null);
+      navigateTo("DASHBOARD");
+    } catch (error) {
+      setVerificationError("Network error. Please try again.");
+      setVerificationStep("entering");
+    }
+  };
+
   // --- Random Fill (Dev/Testing) ---
 
   const handleRandomFill = async () => {
@@ -857,6 +942,15 @@ export default function App() {
             onBack={() => navigateTo("INTAKE_MINDFULNESS")}
           />
         );
+      case "ASSESSMENT_RESULTS":
+        return (
+          <AssessmentResults
+            userName={userName}
+            pillarScores={pillarScores}
+            focusPillar={focusPillar}
+            onContinue={() => navigateTo("DASHBOARD")}
+          />
+        );
       case "PAYMENT_GATE":
         return (
           <PaymentGate
@@ -1032,21 +1126,81 @@ export default function App() {
         >
           <View style={overlayStyles.container}>
             <View style={overlayStyles.modalBox}>
-              <Text style={overlayStyles.modalTitle}>Welcome Back!</Text>
-              <Text style={overlayStyles.modalBody}>
-                An account with this email already exists. Please enter your access code to continue.
-                {"\n\n"}
-                If you've lost your code, reach out to Coach Al using the same email you registered with.
-              </Text>
+              {(verificationStep === "prompt" || verificationStep === "sending") && (
+                <>
+                  <Text style={overlayStyles.modalTitle}>Welcome Back!</Text>
+                  <Text style={overlayStyles.modalBody}>
+                    We found an account with this email. To restore your progress, we'll send a verification code to:
+                    {"\n\n"}
+                    <Text style={{ fontWeight: "700", color: "#13ec13" }}>{verificationEmail}</Text>
+                  </Text>
+                  {verificationError && (
+                    <Text style={overlayStyles.errorText}>{verificationError}</Text>
+                  )}
+                  <TouchableOpacity
+                    style={[overlayStyles.modalButton, verificationStep === "sending" && { opacity: 0.6 }]}
+                    onPress={verificationStep !== "sending" ? handleSendVerificationCode : undefined}
+                    activeOpacity={0.8}
+                  >
+                    {verificationStep === "sending" ? (
+                      <ActivityIndicator size="small" color="#111" />
+                    ) : (
+                      <Text style={overlayStyles.modalButtonText}>Send Code</Text>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {(verificationStep === "entering" || verificationStep === "verifying") && (
+                <>
+                  <Text style={overlayStyles.modalTitle}>Enter Verification Code</Text>
+                  <Text style={overlayStyles.modalBody}>
+                    We sent a 6-digit code to{" "}
+                    <Text style={{ fontWeight: "700", color: "#13ec13" }}>{verificationEmail}</Text>
+                  </Text>
+                  <TextInput
+                    value={verificationCode}
+                    onChangeText={(t) => setVerificationCode(t.replace(/[^0-9]/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    placeholderTextColor="#555"
+                    keyboardType="numeric"
+                    maxLength={6}
+                    style={overlayStyles.codeInput}
+                    autoFocus
+                  />
+                  {verificationError && (
+                    <Text style={overlayStyles.errorText}>{verificationError}</Text>
+                  )}
+                  <TouchableOpacity
+                    style={[overlayStyles.modalButton, (verificationStep === "verifying" || verificationCode.length < 6) && { opacity: 0.6 }]}
+                    onPress={verificationStep !== "verifying" && verificationCode.length === 6 ? handleVerifyCode : undefined}
+                    activeOpacity={0.8}
+                  >
+                    {verificationStep === "verifying" ? (
+                      <ActivityIndicator size="small" color="#111" />
+                    ) : (
+                      <Text style={overlayStyles.modalButtonText}>Verify</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSendVerificationCode}
+                    style={{ marginTop: 12 }}
+                  >
+                    <Text style={overlayStyles.linkText}>Resend Code</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
               <TouchableOpacity
-                style={overlayStyles.modalButton}
                 onPress={() => {
                   setShowReturningUserModal(false);
-                  navigateTo("PAYMENT_GATE");
+                  setVerificationStep(null);
+                  setVerificationError(null);
+                  setVerificationCode("");
                 }}
-                activeOpacity={0.8}
+                style={{ marginTop: 16 }}
               >
-                <Text style={overlayStyles.modalButtonText}>Enter Access Code</Text>
+                <Text style={overlayStyles.linkText}>Use a Different Email</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1108,5 +1262,31 @@ const overlayStyles = StyleSheet.create({
     color: "#000000",
     fontSize: 16,
     fontWeight: "700",
+  },
+  codeInput: {
+    backgroundColor: "#111",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#13ec13",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#13ec13",
+    textAlign: "center",
+    letterSpacing: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: "#ff4444",
+    fontSize: 13,
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  linkText: {
+    color: "#13ec13",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

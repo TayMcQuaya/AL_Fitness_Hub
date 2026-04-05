@@ -919,6 +919,7 @@ export const SCREENS = {
   LEGAL_DISCLAIMER: "LEGAL_DISCLAIMER",
   PRIVACY_POLICY: "PRIVACY_POLICY",
   HELP_SUPPORT: "HELP_SUPPORT",
+  ASSESSMENT_RESULTS: "ASSESSMENT_RESULTS",
 };
 
 // Stan Store product URL (update when product is live)

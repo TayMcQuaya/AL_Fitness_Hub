@@ -1180,3 +1180,38 @@ Age, current weight, and goal weight fields now strip non-numeric characters. Co
 Increased slider thumb size to 44px and track height to 8px across all intake assessment screens for easier grabbing on both desktop and mobile. Added CSS fallback for web browsers.
 
 **Files modified:** `components/IntakeMovement.js`, `components/IntakeBreathingSleep.js`, `components/IntakeMindfulness.js`, `lib/webStyles.js`
+
+## 88. Remove Payment Gate — Free Access
+
+Bypassed the payment gate so all users can access the app without an access code. After completing the intake assessment, users go straight to the Dashboard. Returning users are restored and sent to Dashboard automatically. Added crossed-out $50 / $0 "FREE THIS MONTH" pricing display on the landing page (hero section and final CTA section). The PaymentGate component is preserved in the codebase for easy re-enabling.
+
+**Files modified:** `App.js`, `components/LandingPage.js`
+
+## 89. Assessment Results Screen
+
+Added standalone `AssessmentResults` component so users see their 7 Pillar scores and focus pillar after completing the intake, before entering the Dashboard. Previously this was embedded in the PaymentGate which is now bypassed.
+
+**Files created:** `components/AssessmentResults.js`
+**Files modified:** `App.js`, `constants.js`
+
+## 90. Prevent Duplicate Email Registrations
+
+Tightened the returning user check — any existing email in Firestore now triggers the returning user flow, not just emails with completed intake. Prevents duplicate accounts. Incomplete accounts reuse the existing Firestore doc and continue intake.
+
+**Files modified:** `App.js`
+
+## 91. Email Verification for Returning Users
+
+Added email verification so returning users can prove account ownership and restore their data after clearing browser storage. When an existing email is detected, a 6-digit code is sent via Resend. User enters the code in a multi-step modal; on success, account data is restored from Firestore and they're sent to the Dashboard.
+
+Includes Vercel serverless API endpoints (`/api/send-code`, `/api/verify-code`), Firestore `verificationCodes` collection for code storage, rate limiting (3 sends/hour), attempt limiting (3 tries/code), and 10-minute code expiration. Email sent from `onboarding@resend.dev` (upgradeable to `noreply@burntout.app` after domain verification).
+
+**Files created:** `api/_firebase.js`, `api/send-code.js`, `api/verify-code.js`, `docs/email-verification.md`
+**Files modified:** `vercel.json`, `App.js`
+
+## 92. Incomplete Account Edge Case + Environment Setup
+
+Fixed edge case where users who didn't finish intake were incorrectly asked to verify via email. Now only completed accounts trigger email verification; incomplete accounts simply reuse their Firestore doc and continue intake. Added `.env.example` documenting `RESEND_API_KEY` and added `.env` to `.gitignore`.
+
+**Files created:** `.env.example`
+**Files modified:** `App.js`, `.gitignore`

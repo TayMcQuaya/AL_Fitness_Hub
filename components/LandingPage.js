@@ -198,6 +198,14 @@ export const LandingPage = ({ onGetStarted }) => {
             Health with Coach Al's proven system for busy parents.
           </Text>
 
+          <View style={styles.priceRow}>
+            <Text style={styles.priceOld}>$50</Text>
+            <Text style={styles.priceNew}>$0</Text>
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceBadgeText}>FREE THIS MONTH</Text>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={onGetStarted}
@@ -561,6 +569,14 @@ export const LandingPage = ({ onGetStarted }) => {
             sustainable energy
           </Text>
 
+          <View style={styles.priceRow}>
+            <Text style={styles.priceOld}>$50</Text>
+            <Text style={styles.priceNew}>$0</Text>
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceBadgeText}>FREE THIS MONTH</Text>
+            </View>
+          </View>
+
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={onGetStarted}
@@ -705,6 +721,39 @@ const makeStyles = (colors, width) => {
     lineHeight: 24,
     marginBottom: spacing.xxl,
     maxWidth: 340,
+  },
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    marginBottom: 16,
+  },
+  priceOld: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: colors.gray[500],
+    textDecorationLine: "line-through",
+    textDecorationStyle: "solid",
+  },
+  priceNew: {
+    fontSize: 36,
+    fontWeight: "900",
+    color: colors.primary,
+  },
+  priceBadge: {
+    backgroundColor: `${colors.primary}20`,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  priceBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: colors.primary,
+    letterSpacing: 1,
   },
   primaryButton: {
     flexDirection: "row",
