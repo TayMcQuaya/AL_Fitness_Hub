@@ -1227,3 +1227,9 @@ Added `verificationCodes/{docId}` read/write/create rule to Firestore security r
 Created composite index on `verificationCodes` collection for fields `email` (Ascending) + `createdAt` (Ascending). Required by the rate limit query in `api/send-code.js` which filters by both fields. Without this index, the API returned "The query requires an index."
 
 **Changed in:** Firebase Console → Firestore → Indexes (not a code file)
+
+## 95. Disable Email Verification (Pending Domain Setup)
+
+Email verification requires a verified domain in Resend to send to any email address. Domain is `burntout.app`, registrar is Namecheap, but access is currently unavailable. Added `EMAIL_VERIFICATION_ENABLED = false` flag in `App.js` `handleSaveName`. When disabled, returning users are restored directly without verification (same as pre-verification behavior). When Resend domain is verified, set to `true` to enable. See `docs/email-verification.md` for full setup instructions.
+
+**Files modified:** `App.js`

@@ -331,24 +331,49 @@ export default function App() {
         setIsCheckingAccount(true);
         try {
           const existing = await findUserByEmail(email);
-          if (existing && existing.intakeCompleted) {
-            // Completed account — require email verification to restore
-            setVerificationEmail(email.trim().toLowerCase());
-            setVerificationStep("prompt");
-            setVerificationError(null);
-            setVerificationCode("");
-            setIsCheckingAccount(false);
-            setShowReturningUserModal(true);
-            return;
-          }
-          if (existing && !existing.intakeCompleted) {
-            // Incomplete account — reuse their Firestore doc, continue intake
+          if (existing) {
+            // Reuse the original userId
             const orphanId = userIdRef.current;
             if (existing.id !== orphanId) {
               userIdRef.current = existing.id;
               await setUserId(existing.id);
               deleteUserData(orphanId);
             }
+
+            if (existing.intakeCompleted) {
+              // EMAIL_VERIFICATION: set to true once Resend domain is verified
+              const EMAIL_VERIFICATION_ENABLED = false;
+
+              if (EMAIL_VERIFICATION_ENABLED) {
+                // Require email verification to restore
+                setVerificationEmail(email.trim().toLowerCase());
+                setVerificationStep("prompt");
+                setVerificationError(null);
+                setVerificationCode("");
+                setIsCheckingAccount(false);
+                setShowReturningUserModal(true);
+                return;
+              }
+
+              // No verification — restore directly
+              await restoreUserData(existing);
+              await saveName(existing.name);
+              setUserName(existing.name);
+              if (existing.age) setUserAge(existing.age);
+              if (existing.sex) setUserSex(existing.sex);
+              if (existing.weight) setUserWeight(existing.weight);
+              if (existing.goalWeight) setUserGoalWeight(existing.goalWeight);
+              if (existing.goals) setUserGoals(existing.goals);
+              if (existing.experience) setUserExperience(existing.experience);
+              if (existing.pillarScores) setPillarScores(existing.pillarScores);
+              if (existing.focusPillar) setFocusPillar(existing.focusPillar);
+              setIsPaid(true);
+              setIsCheckingAccount(false);
+              syncUserProfile(userIdRef.current, { name });
+              navigateTo("DASHBOARD");
+              return;
+            }
+            // Incomplete account — continue intake normally
           }
         } finally {
           setIsCheckingAccount(false);

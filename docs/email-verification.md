@@ -66,11 +66,33 @@ Both endpoints use the Firebase client SDK initialized in `api/_firebase.js` (sa
 | `vercel.json` | Routes `/api/*` to serverless functions |
 | `App.js` | Client-side modal flow, send/verify handlers, account restoration |
 
+## Current Status
+
+**Email verification is currently DISABLED.** The toggle is in `App.js` inside `handleSaveName`:
+
+```js
+const EMAIL_VERIFICATION_ENABLED = false;
+```
+
+When `false`: returning users are restored directly without email verification.
+When `true`: returning users must verify via 6-digit email code.
+
+### To Enable
+
+1. Verify `burntout.app` domain in Resend (see below)
+2. Update from address in `api/send-code.js` to `noreply@burntout.app`
+3. Set `EMAIL_VERIFICATION_ENABLED = true` in `App.js`
+4. Deploy
+
+### Why It's Disabled
+
+Resend requires a verified domain to send emails to any address. Without it, emails can only be sent to the Resend account owner's email. Domain is `burntout.app`, registrar is Namecheap (Advanced DNS). Once DNS records are added and domain is verified in Resend, flip the flag to `true`.
+
 ## Email Service: Resend
 
 - **Provider**: [resend.com](https://resend.com) (free tier: 100 emails/day)
-- **Current sender**: `Coach Al's Wellness Studio <onboarding@resend.dev>`
-- **To use custom domain**: Verify `burntout.app` in Resend dashboard → add DNS records to Namecheap → update from address in `api/send-code.js` to `noreply@burntout.app`
+- **Current sender**: `Coach Al's Wellness Studio <onboarding@resend.dev>` (change to `noreply@burntout.app` after domain verification)
+- **Domain registrar**: Namecheap → Domain List → `burntout.app` → Manage → Advanced DNS
 - **API key location**: Vercel dashboard → Settings → Environment Variables → `RESEND_API_KEY`
 
 ## Changing the From Address
