@@ -118,4 +118,5 @@ All steps include a "Use a Different Email" link that closes the modal and retur
 - The `verificationCodes` collection requires explicit read/write/create rules
 - Added in changelog #93: `match /verificationCodes/{docId} { allow read, write, create: if true; }`
 - Without this rule, the API returns 500 "Missing or insufficient permissions"
+- Also requires a **composite index** on `verificationCodes` for fields `email` (Ascending) + `createdAt` (Ascending). Firestore provides a direct link in the error message to create it. Index takes ~2 minutes to build.
 - Tighten before production if needed

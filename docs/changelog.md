@@ -1221,3 +1221,9 @@ Fixed edge case where users who didn't finish intake were incorrectly asked to v
 Added `verificationCodes/{docId}` read/write/create rule to Firestore security rules. The serverless functions use the Firebase client SDK (not Admin SDK), so they need explicit collection permissions. Without this rule, `/api/send-code` returned 500 "Missing or insufficient permissions".
 
 **Changed in:** Firebase Console → Firestore → Rules (not a code file)
+
+## 94. Firestore Composite Index for verificationCodes
+
+Created composite index on `verificationCodes` collection for fields `email` (Ascending) + `createdAt` (Ascending). Required by the rate limit query in `api/send-code.js` which filters by both fields. Without this index, the API returned "The query requires an index."
+
+**Changed in:** Firebase Console → Firestore → Indexes (not a code file)
