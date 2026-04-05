@@ -115,5 +115,7 @@ All steps include a "Use a Different Email" link that closes the modal and retur
 - Wait an hour or check Firestore `verificationCodes` for stale documents
 
 **Firestore rules:**
-- The `verificationCodes` collection must allow read/write from the Firebase client SDK
-- Current permissive dev rules allow this — tighten before production if needed
+- The `verificationCodes` collection requires explicit read/write/create rules
+- Added in changelog #93: `match /verificationCodes/{docId} { allow read, write, create: if true; }`
+- Without this rule, the API returns 500 "Missing or insufficient permissions"
+- Tighten before production if needed

@@ -1215,3 +1215,9 @@ Fixed edge case where users who didn't finish intake were incorrectly asked to v
 
 **Files created:** `.env.example`
 **Files modified:** `App.js`, `.gitignore`
+
+## 93. Firestore Rules — Add verificationCodes Collection
+
+Added `verificationCodes/{docId}` read/write/create rule to Firestore security rules. The serverless functions use the Firebase client SDK (not Admin SDK), so they need explicit collection permissions. Without this rule, `/api/send-code` returned 500 "Missing or insufficient permissions".
+
+**Changed in:** Firebase Console → Firestore → Rules (not a code file)
