@@ -36,7 +36,10 @@ npm start          # Expo dev server
 npm run web        # Web browser
 npm run android    # Android emulator/device
 npm run ios        # iOS simulator/device
+vercel dev         # Local dev with API routes + admin dashboard
 ```
+
+Use `vercel dev` when testing the admin dashboard (`/admin`) or API endpoints (`/api/*`). Requires the Vercel CLI (`npm i -g vercel`) and a `.env` file with `ADMIN_PASSWORD` and `RESEND_API_KEY`.
 
 ## Scripts
 

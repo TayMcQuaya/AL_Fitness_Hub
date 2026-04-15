@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin - Coach Al's Wellness Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#13ec13;--primary-dark:#0eb80e;--primary-light:rgba(19,236,19,0.15);
+  --secondary:#ec7f13;--secondary-light:rgba(236,127,19,0.15);
+  --bg:#111111;--surface:#1a1a1a;--surface2:#222222;
+  --text:#ffffff;--text2:#9ca3af;--text3:#6b7280;
+  --success:#22c55e;--warning:#f59e0b;--error:#ef4444;--info:#3b82f6;
+  --divider:rgba(255,255,255,0.06);--radius:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--primary);text-decoration:none}
+
+/* Login */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.login-box{background:var(--surface);border-radius:var(--radius);padding:40px 32px;width:100%;max-width:380px;text-align:center}
+.login-box h1{font-size:20px;font-weight:800;margin-bottom:4px}
+.login-box .subtitle{color:var(--text2);font-size:13px;margin-bottom:32px}
+.login-box .logo{color:var(--primary);font-size:28px;margin-bottom:16px}
+.input{width:100%;padding:14px 16px;background:var(--bg);border:2px solid var(--divider);border-radius:var(--radius);color:var(--text);font-size:16px;outline:none;transition:border-color .2s}
+.input:focus{border-color:var(--primary)}
+.input::placeholder{color:var(--text3)}
+.btn{width:100%;padding:14px;background:var(--primary);color:#000;font-size:16px;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;margin-top:16px;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary)}
+.btn-sm{padding:10px 16px;font-size:13px;width:auto}
+.error-msg{color:var(--error);font-size:13px;margin-top:12px}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--divider);position:sticky;top:0;background:var(--bg);z-index:100}
+.header h1{font-size:16px;font-weight:700}
+.header .brand{color:var(--primary);font-size:13px;font-weight:600}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn-icon{background:var(--surface);border:none;color:var(--text2);width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
+.btn-icon:hover{background:var(--surface2)}
+
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:16px 20px}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--divider)}
+.stat-card .label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px}
+.stat-card .value{font-size:28px;font-weight:900;color:var(--primary)}
+.stat-card .sub{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card.accent .value{color:var(--secondary)}
+
+/* Pillar Distribution */
+.pillar-bars{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.pillar-bar-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.pillar-bar-label{width:90px;color:var(--text2);text-transform:capitalize}
+.pillar-bar-track{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.pillar-bar-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .3s}
+.pillar-bar-count{width:24px;text-align:right;color:var(--text3);font-weight:600}
+
+/* Search */
+.search-bar{padding:0 20px 12px}
+.search-input{width:100%;padding:12px 16px 12px 40px;background:var(--surface);border:1px solid var(--divider);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center}
+.search-input:focus{border-color:var(--primary)}
+
+/* Users Table (desktop) */
+.users-section{padding:0 20px 20px}
+.users-table{width:100%;border-collapse:collapse;display:table}
+.users-table th{text-align:left;padding:10px 12px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;border-bottom:1px solid var(--divider);cursor:pointer;user-select:none;white-space:nowrap}
+.users-table th:hover{color:var(--text2)}
+.users-table th .sort-arrow{margin-left:4px;font-size:10px}
+.users-table td{padding:12px;font-size:14px;border-bottom:1px solid var(--divider);color:var(--text2)}
+.users-table tr:hover td{background:var(--surface);cursor:pointer}
+.users-table .name-cell{color:var(--text);font-weight:600}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-paid{background:var(--primary-light);color:var(--primary)}
+.badge-unpaid{background:rgba(239,68,68,0.15);color:var(--error)}
+.badge-pillar{background:var(--secondary-light);color:var(--secondary);text-transform:capitalize}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+
+/* Users Cards (mobile) */
+.users-cards{display:none}
+.user-card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--divider);margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.user-card:hover,.user-card:active{border-color:var(--primary)}
+.user-card .uc-top{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px}
+.user-card .uc-name{font-weight:700;font-size:15px;color:var(--text)}
+.user-card .uc-email{font-size:12px;color:var(--text3);margin-top:2px}
+.user-card .uc-stats{display:flex;gap:16px;font-size:12px;color:var(--text2)}
+.user-card .uc-stats span{display:flex;align-items:center;gap:4px}
+.user-card .uc-stats strong{color:var(--text);font-weight:600}
+
+/* User Detail */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto}
+.detail-panel{background:var(--surface);border-radius:var(--radius);width:100%;max-width:600px;margin-top:20px;margin-bottom:20px}
+.detail-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--divider)}
+.detail-header h2{font-size:18px;font-weight:700}
+.detail-body{padding:20px}
+.detail-section{margin-bottom:24px}
+.detail-section h3{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:12px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+.detail-field .df-label{font-size:11px;color:var(--text3);margin-bottom:2px}
+.detail-field .df-value{font-size:14px;color:var(--text);font-weight:500}
+.score-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.score-name{width:100px;font-size:13px;color:var(--text2);text-transform:capitalize}
+.score-track{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.score-fill{height:100%;border-radius:4px;transition:width .3s}
+.score-val{width:36px;text-align:right;font-size:13px;font-weight:600;color:var(--text2)}
+.score-row.focus .score-name{color:var(--secondary);font-weight:700}
+.score-row.focus .score-val{color:var(--secondary)}
+.challenge-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.challenge-card{background:var(--bg);border-radius:8px;padding:12px;text-align:center}
+.challenge-card .cc-pillar{font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.challenge-card .cc-day{font-size:20px;font-weight:800;color:var(--primary)}
+.challenge-card .cc-sub{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* Loading */
+.spinner{display:inline-block;width:20px;height:20px;border:3px solid var(--divider);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-wrap{display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--text2)}
+
+/* Responsive */
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .users-table{display:none}
+  .users-cards{display:block}
+  .detail-grid{grid-template-columns:1fr}
+  .challenge-cards{grid-template-columns:1fr}
+  .detail-overlay{padding:0}
+  .detail-panel{margin:0;border-radius:0;min-height:100vh}
+}
+@media(max-width:380px){
+  .stats-grid{grid-template-columns:1fr}
+}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- Login View -->
+<div id="view-login" class="login-wrap">
+  <div class="login-box">
+    <div class="logo">&#9752;</div>
+    <h1>Coach Al's Wellness Studio</h1>
+    <p class="subtitle">Admin Dashboard</p>
+    <input id="password-input" class="input" type="password" placeholder="Enter admin password" autocomplete="current-password">
+    <button id="login-btn" class="btn" onclick="login()">Sign In</button>
+    <p id="login-error" class="error-msg hidden"></p>
+  </div>
+</div>
+
+<!-- Dashboard View -->
+<div id="view-dashboard" class="hidden">
+  <div class="header">
+    <div>
+      <div class="brand">Coach Al's Wellness Studio</div>
+      <h1>Admin Dashboard</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="refresh()" title="Refresh">&#8635;</button>
+      <button class="btn-icon" onclick="logout()" title="Logout">&#10005;</button>
+    </div>
+  </div>
+
+  <div id="stats-loading" class="loading-wrap"><div class="spinner"></div> Loading stats...</div>
+  <div id="stats-grid" class="stats-grid hidden"></div>
+
+  <div class="search-bar">
+    <input id="search-input" class="search-input" type="text" placeholder="Search by name or email..." oninput="renderUsers()">
+  </div>
+
+  <div id="users-loading" class="loading-wrap"><div class="spinner"></div> Loading users...</div>
+  <div id="users-section" class="users-section hidden"></div>
+</div>
+
+<!-- User Detail Overlay -->
+<div id="view-detail" class="detail-overlay hidden" onclick="if(event.target===this)closeDetail()"></div>
+
+<script>
+// ─── State ───
+let authToken = null;
+let authTimestamp = null;
+let users = [];
+let stats = {};
+let sortField = 'name';
+let sortDir = 'asc';
+
+// ─── Auth ───
+function getAuthHeader() {
+  return { Authorization: 'Bearer ' + authToken + ':' + authTimestamp };
+}
+
+function checkSession() {
+  const t = sessionStorage.getItem('admin_token');
+  const ts = sessionStorage.getItem('admin_timestamp');
+  if (t && ts) {
+    const age = Date.now() - parseInt(ts);
+    if (age < 24 * 60 * 60 * 1000) {
+      authToken = t;
+      authTimestamp = ts;
+      showDashboard();
+      return;
+    }
+  }
+  showLogin();
+}
+
+async function login() {
+  const pw = document.getElementById('password-input').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  if (!pw) { errEl.textContent = 'Password required.'; errEl.classList.remove('hidden'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  errEl.classList.add('hidden');
+
+  try {
+    const res = await fetch('/api/admin/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Invalid password.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      return;
+    }
+    authToken = data.token;
+    authTimestamp = data.timestamp.toString();
+    sessionStorage.setItem('admin_token', authToken);
+    sessionStorage.setItem('admin_timestamp', authTimestamp);
+    showDashboard();
+  } catch (e) {
+    errEl.textContent = 'Connection error. Try again.';
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('admin_token');
+  sessionStorage.removeItem('admin_timestamp');
+  authToken = null;
+  authTimestamp = null;
+  showLogin();
+}
+
+// ─── Views ───
+function showLogin() {
+  document.getElementById('view-login').classList.remove('hidden');
+  document.getElementById('view-dashboard').classList.add('hidden');
+  document.getElementById('view-detail').classList.add('hidden');
+  document.getElementById('password-input').value = '';
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = 'Sign In';
+}
+
+function showDashboard() {
+  document.getElementById('view-login').classList.add('hidden');
+  document.getElementById('view-dashboard').classList.remove('hidden');
+  loadData();
+}
+
+async function loadData() {
+  await Promise.all([loadStats(), loadUsers()]);
+}
+
+function refresh() {
+  loadData();
+}
+
+// ─── Stats ───
+async function loadStats() {
+  const loadEl = document.getElementById('stats-loading');
+  const gridEl = document.getElementById('stats-grid');
+  loadEl.classList.remove('hidden');
+  gridEl.classList.add('hidden');
+
+  try {
+    const res = await fetch('/api/admin/stats', { headers: getAuthHeader() });
+    if (res.status === 401) { logout(); return; }
+    stats = await res.json();
+    renderStats();
+  } catch (e) {
+    gridEl.innerHTML = '<div class="empty-state">Failed to load stats</div>';
+    gridEl.classList.remove('hidden');
+  }
+  loadEl.classList.add('hidden');
+}
+
+function renderStats() {
+  const el = document.getElementById('stats-grid');
+  const pd = stats.pillarDistribution || {};
+  const maxPillar = Math.max(1, ...Object.values(pd));
+  const pillars = ['breathing','sleep','hydration','nutrition','movement','environment','mindfulness'];
+
+  let pillarBars = '';
+  pillars.forEach(p => {
+    const count = pd[p] || 0;
+    const pct = Math.round((count / maxPillar) * 100);
+    pillarBars += '<div class="pillar-bar-row"><span class="pillar-bar-label">' + p + '</span><div class="pillar-bar-track"><div class="pillar-bar-fill" style="width:' + pct + '%"></div></div><span class="pillar-bar-count">' + count + '</span></div>';
+  });
+
+  el.innerHTML =
+    card('Total Users', stats.totalUsers, stats.paidUsers + ' paid / ' + stats.unpaidUsers + ' unpaid') +
+    card('Active (7d)', stats.activeUsers, Math.round((stats.activeUsers / Math.max(1, stats.totalUsers)) * 100) + '% of total') +
+    card('Avg Streak', stats.averageStreak + 'd', 'Across all users', true) +
+    card('Avg Days Logged', stats.averageDaysLogged, 'Per user') +
+    card('Completion', stats.completionRate + '%', 'Finished intake') +
+    card('Access Codes', stats.availableCodes + ' left', stats.usedCodes + ' used / ' + stats.totalCodes + ' total') +
+    '<div class="stat-card" style="grid-column:1/-1"><div class="label">Focus Pillar Distribution</div>' + pillarBars + '</div>';
+
+  el.classList.remove('hidden');
+}
+
+function card(label, value, sub, accent) {
+  return '<div class="stat-card' + (accent ? ' accent' : '') + '"><div class="label">' + label + '</div><div class="value">' + value + '</div><div class="sub">' + sub + '</div></div>';
+}
+
+// ─── Users ───
+async function loadUsers() {
+  const loadEl = document.getElementById('users-loading');
+  const secEl = document.getElementById('users-section');
+  loadEl.classList.remove('hidden');
+  secEl.classList.add('hidden');
+
+  try {
+    const res = await fetch('/api/admin/users', { headers: getAuthHeader() });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    users = data.users || [];
+    renderUsers();
+  } catch (e) {
+    secEl.innerHTML = '<div class="empty-state">Failed to load users</div>';
+    secEl.classList.remove('hidden');
+  }
+  loadEl.classList.add('hidden');
+}
+
+function renderUsers() {
+  const secEl = document.getElementById('users-section');
+  const query = (document.getElementById('search-input').value || '').toLowerCase();
+  let filtered = users;
+  if (query) {
+    filtered = users.filter(u => (u.name || '').toLowerCase().includes(query) || (u.email || '').toLowerCase().includes(query));
+  }
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va = a[sortField], vb = b[sortField];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va == null) va = '';
+    if (vb == null) vb = '';
+    let cmp = va < vb ? -1 : va > vb ? 1 : 0;
+    return sortDir === 'desc' ? -cmp : cmp;
+  });
+
+  if (filtered.length === 0) {
+    secEl.innerHTML = '<div class="empty-state">No users found</div>';
+    secEl.classList.remove('hidden');
+    return;
+  }
+
+  // Table (desktop)
+  let table = '<table class="users-table"><thead><tr>';
+  const cols = [
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'focusPillar', label: 'Focus' },
+    { key: 'currentStreak', label: 'Streak' },
+    { key: 'totalDaysLogged', label: 'Days' },
+    { key: 'lastActiveAt', label: 'Last Active' },
+    { key: 'paid', label: 'Status' },
+  ];
+  cols.forEach(c => {
+    const arrow = sortField === c.key ? (sortDir === 'asc' ? ' &#9650;' : ' &#9660;') : '';
+    table += '<th onclick="setSort(\'' + c.key + '\')">' + c.label + '<span class="sort-arrow">' + arrow + '</span></th>';
+  });
+  table += '</tr></thead><tbody>';
+  filtered.forEach(u => {
+    const badge = u.paid ? '<span class="badge badge-paid">Paid</span>' : '<span class="badge badge-unpaid">Free</span>';
+    const pillar = u.focusPillar ? '<span class="badge badge-pillar">' + esc(u.focusPillar) + '</span>' : '—';
+    table += '<tr onclick="showDetail(\'' + u.id + '\')">';
+    table += '<td class="name-cell">' + esc(u.name || '—') + '</td>';
+    table += '<td>' + esc(u.email || '—') + '</td>';
+    table += '<td>' + pillar + '</td>';
+    table += '<td>' + u.currentStreak + '</td>';
+    table += '<td>' + u.totalDaysLogged + '</td>';
+    table += '<td>' + fmtDate(u.lastActiveAt) + '</td>';
+    table += '<td>' + badge + '</td>';
+    table += '</tr>';
+  });
+  table += '</tbody></table>';
+
+  // Cards (mobile)
+  let cards = '<div class="users-cards">';
+  filtered.forEach(u => {
+    const badge = u.paid ? '<span class="badge badge-paid">Paid</span>' : '<span class="badge badge-unpaid">Free</span>';
+    cards += '<div class="user-card" onclick="showDetail(\'' + u.id + '\')">';
+    cards += '<div class="uc-top"><div><div class="uc-name">' + esc(u.name || '—') + '</div><div class="uc-email">' + esc(u.email || '—') + '</div></div>' + badge + '</div>';
+    cards += '<div class="uc-stats"><span>Streak: <strong>' + u.currentStreak + '</strong></span><span>Days: <strong>' + u.totalDaysLogged + '</strong></span><span>Active: <strong>' + fmtDate(u.lastActiveAt) + '</strong></span></div>';
+    cards += '</div>';
+  });
+  cards += '</div>';
+
+  secEl.innerHTML = table + cards;
+  secEl.classList.remove('hidden');
+}
+
+function setSort(field) {
+  if (sortField === field) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortField = field;
+    sortDir = 'asc';
+  }
+  renderUsers();
+}
+
+// ─── User Detail ───
+function showDetail(userId) {
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+
+  const pillars = ['breathing','sleep','hydration','nutrition','movement','environment','mindfulness'];
+  const pillarIcons = { breathing:'&#127746;', sleep:'&#128164;', hydration:'&#128167;', nutrition:'&#127869;', movement:'&#127939;', environment:'&#127795;', mindfulness:'&#129504;' };
+
+  let scores = '';
+  if (u.pillarScores) {
+    pillars.forEach(p => {
+      const s = u.pillarScores[p] || 0;
+      const isFocus = p === u.focusPillar;
+      const color = isFocus ? 'var(--secondary)' : 'var(--primary)';
+      scores += '<div class="score-row' + (isFocus ? ' focus' : '') + '"><span class="score-name">' + p + (isFocus ? ' *' : '') + '</span><div class="score-track"><div class="score-fill" style="width:' + (s * 10) + '%;background:' + color + '"></div></div><span class="score-val">' + s + '/10</span></div>';
+    });
+  } else {
+    scores = '<div style="color:var(--text3);font-size:13px">No scores recorded</div>';
+  }
+
+  let challenges = '<div class="challenge-cards">';
+  const cp = u.challengeProgress || {};
+  const cpKeys = Object.keys(cp);
+  if (cpKeys.length > 0) {
+    cpKeys.forEach(p => {
+      const c = cp[p];
+      const isFocus = p === u.focusPillar;
+      challenges += '<div class="challenge-card"><div class="cc-pillar">' + (isFocus ? '&#9733; ' : '') + p + '</div><div class="cc-day">Day ' + c.currentDay + '/21</div><div class="cc-sub">Done: ' + c.completedDays + ' | Missed: ' + c.missedDays + ' | Streak: ' + c.streakDays + '</div></div>';
+    });
+  } else {
+    challenges += '<div style="color:var(--text3);font-size:13px;padding:12px">No challenge data</div>';
+  }
+  challenges += '</div>';
+
+  const el = document.getElementById('view-detail');
+  el.innerHTML = '<div class="detail-panel">' +
+    '<div class="detail-header"><h2>' + esc(u.name || 'User') + '</h2><button class="btn-icon" onclick="closeDetail()">&#10005;</button></div>' +
+    '<div class="detail-body">' +
+      '<div class="detail-section"><h3>Profile</h3><div class="detail-grid">' +
+        field('Email', u.email) + field('Age', u.age) + field('Sex', u.sex) +
+        field('Weight', u.weight ? u.weight + ' lbs' : null) + field('Goal Weight', u.goalWeight ? u.goalWeight + ' lbs' : null) +
+        field('Goals', u.goals) + field('Experience', u.experience) + field('Injuries', u.injuries) +
+        field('Signed Up', fmtDate(u.createdAt)) + field('Last Active', fmtDate(u.lastActiveAt)) +
+        field('Resets', u.resetCount) + field('Access Code', u.accessCode) +
+      '</div></div>' +
+      '<div class="detail-section"><h3>Pillar Scores</h3>' + scores + '</div>' +
+      '<div class="detail-section"><h3>Challenge Progress</h3>' + challenges + '</div>' +
+      '<div class="detail-section"><h3>Engagement</h3><div class="detail-grid">' +
+        field('Current Streak', u.currentStreak + ' days') +
+        field('Total Days Logged', u.totalDaysLogged) +
+        field('Book Chapters Read', u.bookChaptersRead + '/13') +
+        field('Status', u.paid ? 'Paid' : 'Free') +
+      '</div></div>' +
+    '</div></div>';
+  el.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('view-detail').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function field(label, value) {
+  return '<div class="detail-field"><div class="df-label">' + label + '</div><div class="df-value">' + esc(value != null ? String(value) : '—') + '</div></div>';
+}
+
+// ─── Helpers ───
+function fmtDate(epoch) {
+  if (!epoch) return '—';
+  const d = new Date(epoch);
+  if (isNaN(d.getTime())) return '—';
+  const now = Date.now();
+  const diff = now - epoch;
+  if (diff < 60000) return 'Just now';
+  if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+  if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ─── Keyboard ───
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('view-login').classList.contains('hidden')) {
+    login();
+  }
+  if (e.key === 'Escape' && !document.getElementById('view-detail').classList.contains('hidden')) {
+    closeDetail();
+  }
+});
+
+// ─── Init ───
+checkSession();
+</script>
+</body>
+</html>

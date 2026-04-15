@@ -15,7 +15,10 @@ npm start          # expo start (default)
 npm run web        # expo start --web
 npm run android    # expo start --android
 npm run ios        # expo start --ios
+vercel dev         # local dev with API routes (required for admin dashboard)
 ```
+
+Use `vercel dev` instead of `npm run web` when testing the admin dashboard (`/admin`) or any API endpoints (`/api/*`). It runs both the Expo dev server and Vercel serverless functions together. Requires the Vercel CLI (`npm i -g vercel`) and a `.env` file with `ADMIN_PASSWORD` and `RESEND_API_KEY`.
 
 No test runner, linter, or build scripts are configured.
 

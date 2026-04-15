@@ -1233,3 +1233,20 @@ Created composite index on `verificationCodes` collection for fields `email` (As
 Email verification requires a verified domain in Resend to send to any email address. Domain is `burntout.app`, registrar is Namecheap, but access is currently unavailable. Added `EMAIL_VERIFICATION_ENABLED = false` flag in `App.js` `handleSaveName`. When disabled, returning users are restored directly without verification (same as pre-verification behavior). When Resend domain is verified, set to `true` to enable. See `docs/email-verification.md` for full setup instructions.
 
 **Files modified:** `App.js`
+
+## 96. Admin Dashboard
+
+Built a standalone admin dashboard at `burntout.app/admin` for Coach Al to view user data and engagement stats. Password-protected via `ADMIN_PASSWORD` Vercel env var with HMAC token authentication (24-hour sessions). Mobile-first responsive design matching the app's dark theme.
+
+Features: summary stat cards (total users, active users, avg streak, pillar distribution, access codes), searchable/sortable users table (becomes card-list on mobile), user detail overlay with pillar score bars, challenge progress, and engagement data.
+
+Architecture: single self-contained HTML file (`public/admin/index.html`) served at `/admin`, backed by 3 Vercel serverless API endpoints (`/api/admin/auth`, `/api/admin/stats`, `/api/admin/users`). No Firebase SDK in the frontend — all data flows through auth-protected APIs.
+
+**Files created:** `api/admin/_auth.js`, `api/admin/auth.js`, `api/admin/stats.js`, `api/admin/users.js`, `public/admin/index.html`
+**Files modified:** `vercel.json`, `.env.example`
+
+## 95. Disable Email Verification (Pending Domain Setup)
+
+Email verification requires a verified domain in Resend to send to any email address. Domain is `burntout.app`, registrar is Namecheap, but access is currently unavailable. Added `EMAIL_VERIFICATION_ENABLED = false` flag in `App.js` `handleSaveName`. When disabled, returning users are restored directly without verification (same as pre-verification behavior). When Resend domain is verified, set to `true` to enable. See `docs/email-verification.md` for full setup instructions.
+
+**Files modified:** `App.js`

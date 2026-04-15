@@ -46,3 +46,4 @@ generated-codes.txt
 
 # export spreadsheets
 exports/
+.vercel
