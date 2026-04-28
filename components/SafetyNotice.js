@@ -10,11 +10,12 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../styles/ThemeContext';
 
-export const SafetyNotice = ({ onNext, onBack }) => {
+export const SafetyNotice = ({ onNext, onBack, initialNewsletterOptIn }) => {
   const { colors, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [accepted, setAccepted] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(initialNewsletterOptIn ?? false);
 
   return (
     <View style={styles.container}>
@@ -92,12 +93,27 @@ export const SafetyNotice = ({ onNext, onBack }) => {
             I have read and understood the disclaimer.
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.checkboxRow, styles.checkboxRowSpaced]}
+          onPress={() => setNewsletterOptIn(!newsletterOptIn)}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.checkbox, newsletterOptIn && styles.checkboxActive]}>
+            {newsletterOptIn && (
+              <MaterialIcons name="check" size={16} color={colors.textInverse} />
+            )}
+          </View>
+          <Text style={styles.checkboxLabel}>
+            Sign me up for Coach Al's newsletter — tips, updates, and exclusive content. (Optional)
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.button, !accepted && styles.buttonDisabled]}
-          onPress={() => accepted && onNext()}
+          onPress={() => accepted && onNext({ newsletterOptIn })}
           disabled={!accepted}
           activeOpacity={0.8}
         >
@@ -262,6 +278,9 @@ const makeStyles = (colors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+  },
+  checkboxRowSpaced: {
+    marginTop: 16,
   },
   checkbox: {
     width: 24,

@@ -1245,8 +1245,12 @@ Architecture: single self-contained HTML file (`public/admin/index.html`) served
 **Files created:** `api/admin/_auth.js`, `api/admin/auth.js`, `api/admin/stats.js`, `api/admin/users.js`, `public/admin/index.html`
 **Files modified:** `vercel.json`, `.env.example`
 
-## 95. Disable Email Verification (Pending Domain Setup)
+## 97. Newsletter Opt-In Checkbox
 
-Email verification requires a verified domain in Resend to send to any email address. Domain is `burntout.app`, registrar is Namecheap, but access is currently unavailable. Added `EMAIL_VERIFICATION_ENABLED = false` flag in `App.js` `handleSaveName`. When disabled, returning users are restored directly without verification (same as pre-verification behavior). When Resend domain is verified, set to `true` to enable. See `docs/email-verification.md` for full setup instructions.
+Added an optional "Sign me up for Coach Al's newsletter" checkbox on the SafetyNotice screen alongside the existing legal disclaimer checkbox. The choice is persisted locally (AsyncStorage) and synced to Firestore as `newsletterOptIn` on the user document.
 
-**Files modified:** `App.js`
+Admin dashboard updates: new "Newsletter" stat card showing subscriber count + percentage, new "Newsletter" column in the users table (Yes/No badge), newsletter status indicator on mobile user cards, and "Newsletter: Subscribed/No" field in the user detail panel. Spreadsheet export (`scripts/export-users.js`) also includes a "Newsletter" column.
+
+The disclaimer checkbox remains required to continue; the newsletter checkbox is purely optional and defaults to unchecked.
+
+**Files modified:** `components/SafetyNotice.js`, `App.js`, `lib/storage.js`, `api/admin/users.js`, `api/admin/stats.js`, `public/admin/index.html`, `scripts/export-users.js`

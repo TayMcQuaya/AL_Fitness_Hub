@@ -28,6 +28,7 @@ module.exports = async function handler(req, res) {
     let totalStreak = 0;
     let totalDaysLogged = 0;
     let intakeCompleted = 0;
+    let newsletterSubscribers = 0;
     const pillarDistribution = {};
 
     usersSnap.forEach((doc) => {
@@ -36,6 +37,7 @@ module.exports = async function handler(req, res) {
 
       if (d.paid) paidUsers++;
       if (d.intakeCompleted) intakeCompleted++;
+      if (d.newsletterOptIn === true) newsletterSubscribers++;
 
       const lastActive = toEpoch(d.lastActiveAt);
       if (lastActive && lastActive > sevenDaysAgo) activeUsers++;
@@ -69,6 +71,7 @@ module.exports = async function handler(req, res) {
       averageStreak: totalUsers > 0 ? Math.round((totalStreak / totalUsers) * 10) / 10 : 0,
       averageDaysLogged: totalUsers > 0 ? Math.round((totalDaysLogged / totalUsers) * 10) / 10 : 0,
       completionRate: totalUsers > 0 ? Math.round((intakeCompleted / totalUsers) * 100) : 0,
+      newsletterSubscribers,
       pillarDistribution,
       totalCodes,
       usedCodes,

@@ -76,6 +76,7 @@ module.exports = async function handler(req, res) {
         paid: d.paid || false,
         accessCode: d.accessCode || null,
         intakeCompleted: d.intakeCompleted || false,
+        newsletterOptIn: d.newsletterOptIn === true,
         resetCount: d.resetCount || 0,
         createdAt: toEpoch(d.createdAt),
         lastActiveAt: toEpoch(d.lastActiveAt),

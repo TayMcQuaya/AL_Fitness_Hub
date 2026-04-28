@@ -312,6 +312,7 @@ function renderStats() {
     card('Avg Streak', stats.averageStreak + 'd', 'Across all users', true) +
     card('Avg Days Logged', stats.averageDaysLogged, 'Per user') +
     card('Completion', stats.completionRate + '%', 'Finished intake') +
+    card('Newsletter', (stats.newsletterSubscribers || 0), Math.round(((stats.newsletterSubscribers || 0) / Math.max(1, stats.totalUsers)) * 100) + '% subscribed', true) +
     card('Access Codes', stats.availableCodes + ' left', stats.usedCodes + ' used / ' + stats.totalCodes + ' total') +
     '<div class="stat-card" style="grid-column:1/-1"><div class="label">Focus Pillar Distribution</div>' + pillarBars + '</div>';
 
@@ -376,6 +377,7 @@ function renderUsers() {
     { key: 'currentStreak', label: 'Streak' },
     { key: 'totalDaysLogged', label: 'Days' },
     { key: 'lastActiveAt', label: 'Last Active' },
+    { key: 'newsletterOptIn', label: 'Newsletter' },
     { key: 'paid', label: 'Status' },
   ];
   cols.forEach(c => {
@@ -386,6 +388,7 @@ function renderUsers() {
   filtered.forEach(u => {
     const badge = u.paid ? '<span class="badge badge-paid">Paid</span>' : '<span class="badge badge-unpaid">Free</span>';
     const pillar = u.focusPillar ? '<span class="badge badge-pillar">' + esc(u.focusPillar) + '</span>' : '—';
+    const newsletter = u.newsletterOptIn ? '<span class="badge badge-paid">Yes</span>' : '<span style="color:var(--text3)">No</span>';
     table += '<tr onclick="showDetail(\'' + u.id + '\')">';
     table += '<td class="name-cell">' + esc(u.name || '—') + '</td>';
     table += '<td>' + esc(u.email || '—') + '</td>';
@@ -393,6 +396,7 @@ function renderUsers() {
     table += '<td>' + u.currentStreak + '</td>';
     table += '<td>' + u.totalDaysLogged + '</td>';
     table += '<td>' + fmtDate(u.lastActiveAt) + '</td>';
+    table += '<td>' + newsletter + '</td>';
     table += '<td>' + badge + '</td>';
     table += '</tr>';
   });
@@ -402,9 +406,10 @@ function renderUsers() {
   let cards = '<div class="users-cards">';
   filtered.forEach(u => {
     const badge = u.paid ? '<span class="badge badge-paid">Paid</span>' : '<span class="badge badge-unpaid">Free</span>';
+    const newsletterIcon = u.newsletterOptIn ? '&#9993; Yes' : '&#9993; No';
     cards += '<div class="user-card" onclick="showDetail(\'' + u.id + '\')">';
     cards += '<div class="uc-top"><div><div class="uc-name">' + esc(u.name || '—') + '</div><div class="uc-email">' + esc(u.email || '—') + '</div></div>' + badge + '</div>';
-    cards += '<div class="uc-stats"><span>Streak: <strong>' + u.currentStreak + '</strong></span><span>Days: <strong>' + u.totalDaysLogged + '</strong></span><span>Active: <strong>' + fmtDate(u.lastActiveAt) + '</strong></span></div>';
+    cards += '<div class="uc-stats"><span>Streak: <strong>' + u.currentStreak + '</strong></span><span>Days: <strong>' + u.totalDaysLogged + '</strong></span><span>Active: <strong>' + fmtDate(u.lastActiveAt) + '</strong></span><span>' + newsletterIcon + '</span></div>';
     cards += '</div>';
   });
   cards += '</div>';
@@ -467,6 +472,7 @@ function showDetail(userId) {
         field('Goals', u.goals) + field('Experience', u.experience) + field('Injuries', u.injuries) +
         field('Signed Up', fmtDate(u.createdAt)) + field('Last Active', fmtDate(u.lastActiveAt)) +
         field('Resets', u.resetCount) + field('Access Code', u.accessCode) +
+        field('Newsletter', u.newsletterOptIn ? 'Subscribed' : 'No') +
       '</div></div>' +
       '<div class="detail-section"><h3>Pillar Scores</h3>' + scores + '</div>' +
       '<div class="detail-section"><h3>Challenge Progress</h3>' + challenges + '</div>' +

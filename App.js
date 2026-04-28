@@ -57,6 +57,7 @@ import {
   softResetProgress,
   saveAllData,
   savePaidStatus,
+  saveNewsletterOptIn,
   saveTheme,
   restoreUserData,
   setUserId,
@@ -121,6 +122,7 @@ export default function App() {
 
   const [isPaid, setIsPaid] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
 
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState(null);
@@ -179,6 +181,7 @@ export default function App() {
       if (data.theme) setIsDark(data.theme === 'dark');
       if (data.paid) setIsPaid(true);
       if (data.email) setUserEmail(data.email);
+      if (data.newsletterOptIn) setNewsletterOptIn(data.newsletterOptIn);
 
       // Skip payment gate — app is free for now
       setIsPaid(true);
@@ -427,7 +430,9 @@ export default function App() {
 
   // --- Assessment Finalization ---
 
-  const finalizeAssessment = async () => {
+  const finalizeAssessment = async (opts = {}) => {
+    const optedIn = opts.newsletterOptIn === true;
+
     // Find weakest pillar; on tie, pick the one with lower PILLARS index (higher priority)
     const pillarOrder = PILLARS.map((p) => p.id);
     const weakestPillar = pillarOrder.reduce((weakestId, id) => {
@@ -436,17 +441,20 @@ export default function App() {
       return score < weakestScore ? id : weakestId;
     }, pillarOrder[0]);
     setFocusPillar(weakestPillar);
+    setNewsletterOptIn(optedIn);
 
     try {
       await savePillarScores(pillarScores);
       await saveFocusPillar(weakestPillar);
       await saveIntakeCompleted();
+      await saveNewsletterOptIn(optedIn);
 
       // Fire-and-forget cloud sync
       if (userIdRef.current) {
         syncPillarScoresCloud(userIdRef.current, pillarScores, weakestPillar);
         syncUserProfile(userIdRef.current, {
           disclaimerAcceptedAt: new Date().toISOString(),
+          newsletterOptIn: optedIn,
         });
       }
     } catch (error) {
@@ -963,6 +971,7 @@ export default function App() {
       case "SAFETY_NOTICE":
         return (
           <SafetyNotice
+            initialNewsletterOptIn={newsletterOptIn}
             onNext={finalizeAssessment}
             onBack={() => navigateTo("INTAKE_MINDFULNESS")}
           />

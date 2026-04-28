@@ -73,6 +73,7 @@ async function main() {
       "Name": d.name || "",
       "Email": d.email || "",
       "Status": d.paid ? "Paid" : "Unpaid",
+      "Newsletter": d.newsletterOptIn === true ? "Yes" : "No",
       "Access Code": d.accessCode || "",
       "Signed Up": formatTimestamp(d.createdAt),
       "Last Active": formatTimestamp(d.lastActiveAt),
@@ -101,6 +102,7 @@ async function main() {
     { wch: 18 },  // Name
     { wch: 28 },  // Email
     { wch: 10 },  // Status
+    { wch: 12 },  // Newsletter
     { wch: 14 },  // Access Code
     { wch: 16 },  // Signed Up
     { wch: 16 },  // Last Active
